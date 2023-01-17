@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Extentions;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using PuppeteerSharp;
@@ -16,11 +17,12 @@ namespace Scrapping.Controllers
         private IPage page;
         private IPage page2;
         private Consts consts;
-        private readonly IMatchService _matchService;
-        public HomeController(ILogger<HomeController> logger, IMatchService matchService)
+        private readonly MongoService<Match> _mongoService;
+
+        public HomeController(ILogger<HomeController> logger, MongoService<Match> mongoService)
         {
             _logger = logger;
-            _matchService = matchService;
+            _mongoService = mongoService;
             consts = new Consts();
         }
 
@@ -49,10 +51,10 @@ namespace Scrapping.Controllers
 
                 match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
-                //if (await _matchService.GetMatchById(match.Id) == null)
-                //{
-                //    continue;
-                //}
+                if (await _mongoService.GetAsync(match.Id) != null)
+                {
+                    continue;
+                }
 
                 page2 = await browser.NewPageAsync();
 
@@ -63,21 +65,21 @@ namespace Scrapping.Controllers
                 #region summary
                 await Task.Delay(25);
                 var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
-                var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).RemoteObject.Value.ToString().Replace("\n", ",").Replace("FINISHED", "").Split(',');
+                var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
                 match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
                 match.Date = Convert.ToDateTime(matchHeaderData[0]);
                 match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
                 var matchSummary = await page2.QuerySelectorAllAsync("div.smv__participantRow");
                 foreach (var item in matchSummary)
                 {
-                    var matchContent = (await item.GetPropertyAsync("outerText")).RemoteObject.Value.ToString().Replace("\n", ",");
+                    var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                     match.Summary.Add(matchContent);
                 }
-
+                match.Result = match.Summary.First();
                 var matchIncidents = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
                 foreach (var item in matchIncidents)
                 {
-                    var matchContent = (await item.GetPropertyAsync("outerText")).RemoteObject.Value.ToString().Replace("\n", ",");
+                    var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                     match.Incidents.Add(matchContent);
                 }
                 #endregion
@@ -95,7 +97,7 @@ namespace Scrapping.Controllers
 
                 #endregion
                 matchesResults.Add(match);
-                await _matchService.SaveItemToDb(match);
+                await _mongoService.CreateAsync(match);
             }
 
             return View();
@@ -107,23 +109,22 @@ namespace Scrapping.Controllers
         /// <param name="url"></param>
         /// <param name="querySelector"></param>
         /// <returns></returns>
-        private async Task<Stats> PopulateData(string url, string querySelector)
+        private async Task<List<string>> PopulateData(string url, string querySelector)
         {
             page2 = await browser.NewPageAsync();
             await Task.Delay(250);
             await page2.GoToAsync(url);
             await Task.Delay(25);
 
-            Stats stats = new Stats();
             var matchStats2 = await page2.QuerySelectorAllAsync(querySelector);
             List<string> rowData = new List<string>();
             foreach (var item in matchStats2)
             {
-                var matchContent = (await item.GetPropertyAsync("outerText")).RemoteObject.Value.ToString().Replace("\n", ",");
+                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                 rowData.Add(matchContent);
             }
-            stats.Data = rowData.ToArray();
-            return stats;
+
+            return rowData;
         }
 
 

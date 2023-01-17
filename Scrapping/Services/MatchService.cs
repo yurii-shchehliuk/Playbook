@@ -4,6 +4,10 @@ using Persistance;
 
 namespace Scrapping.Services
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <remarks>MSSQL</remarks>
     public class MatchService : IMatchService
     {
         private readonly AppDbContext _context;

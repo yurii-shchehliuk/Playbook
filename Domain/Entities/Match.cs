@@ -1,20 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
 {
-    public class Match
+    public class Match : BaseEntity
     {
-        public string Id { get; set; }
         public string Title { get; set; }
         public string Result { get; set; }
         public DateTime Date { get; set; }
         public string THomeId { get; set; }
         public string TGuestId { get; set; }
-        public List<string> Incidents { get; set; }
-        public List<string> Summary { get; set; }
-        public Stats Stats0 { get; set; }
-        public Stats Stats1 { get; set; }
-        public Stats Stats2 { get; set; }
+        public List<string> Incidents { get; set; } = new List<string>();
+        public List<string> Summary { get; set; } = new List<string>();
+        public List<string> Stats0 { get; set; } = new List<string>();
+        public List<string> Stats1 { get; set; } = new List<string>();
+        public List<string> Stats2 { get; set; } = new List<string>();
         public PositionalReport AttackSides { get; set; }
         public PositionalReport ShotDirections { get; set; }
         public PositionalReport ShotZones { get; set; }

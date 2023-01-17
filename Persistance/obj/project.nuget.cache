@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xKXPh/yEGFehEM9jmU5+IoDhajql08jnZIMyP4SsVAzePplfLx/xAGOdivD0ASSTaYxvRtqHVHJqoO3I6Fw2MA==",
+  "dgSpecHash": "fyWQ6kupPhYNDYrFxQGoDpaaKfEe2bc4I8YgWx7KJmA67lq/XRZ5Oj1ML90dbxE5j1Z1N5OmLv54s+BX8FQk3g==",
   "success": true,
-  "projectFilePath": "C:\\Users\\hero1\\source\\repos\\WebScraping\\Persistance\\Persistance.csproj",
+  "projectFilePath": "C:\\Users\\hero1\\source\\repos\\Forecasting\\Persistance\\Persistance.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\hero1\\.nuget\\packages\\microsoft.entityframeworkcore\\7.0.1\\microsoft.entityframeworkcore.7.0.1.nupkg.sha512",
     "C:\\Users\\hero1\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\7.0.1\\microsoft.entityframeworkcore.abstractions.7.0.1.nupkg.sha512",
@@ -15,6 +15,7 @@
     "C:\\Users\\hero1\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\7.0.0\\microsoft.extensions.logging.abstractions.7.0.0.nupkg.sha512",
     "C:\\Users\\hero1\\.nuget\\packages\\microsoft.extensions.options\\7.0.0\\microsoft.extensions.options.7.0.0.nupkg.sha512",
     "C:\\Users\\hero1\\.nuget\\packages\\microsoft.extensions.primitives\\7.0.0\\microsoft.extensions.primitives.7.0.0.nupkg.sha512",
+    "C:\\Users\\hero1\\.nuget\\packages\\mongodb.bson\\2.18.0\\mongodb.bson.2.18.0.nupkg.sha512",
     "C:\\Users\\hero1\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
   ],
   "logs": []

@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "uR1Z48Jaaxy+6GDezlDtbK6OB3+PEeefuUjOBe9GjbpONdDdZJ4ZsR6Hg2T8G0XVjPWzD+lnYWe9C0wv+PAvXA==",
+  "dgSpecHash": "JRwGpbaCV7FeNPt4bu6EhAhLPWpWYTYyvuX1c1wRM9D6Sg/NZsoKuRi6FMqBxD9MVlm7eReJUSeE5ZqQTvyk5Q==",
   "success": true,
-  "projectFilePath": "C:\\Users\\hero1\\source\\repos\\WebScraping\\Domain\\Domain.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\hero1\\source\\repos\\Forecasting\\Domain\\Domain.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hero1\\.nuget\\packages\\mongodb.bson\\2.18.0\\mongodb.bson.2.18.0.nupkg.sha512",
+    "C:\\Users\\hero1\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\5.0.0\\system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512"
+  ],
   "logs": []
 }
