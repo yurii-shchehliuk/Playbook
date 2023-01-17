@@ -86,7 +86,7 @@ namespace Scrapping.Controllers
 
                 #region stats per half
 
-                matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics";
+                matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/0";
                 match.Stats0 = await PopulateData(matchUrl, "div.stat__row");
 
                 matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/1";
@@ -112,9 +112,9 @@ namespace Scrapping.Controllers
         private async Task<List<string>> PopulateData(string url, string querySelector)
         {
             page2 = await browser.NewPageAsync();
-            await Task.Delay(250);
+            await Task.Delay(consts.Delay);
             await page2.GoToAsync(url);
-            await Task.Delay(25);
+            await Task.Delay(50);
 
             var matchStats2 = await page2.QuerySelectorAllAsync(querySelector);
             List<string> rowData = new List<string>();
