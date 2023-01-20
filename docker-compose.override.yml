@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  api.scrapping:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "PlaybookDatabase:ConnectionString=mongodb://scrappingdb:27017"
+    ports:
+      - "8000:80"
+    container_name: api.scrapping
+    depends_on:
+        - scrappingdb
+   
+  scrappingdb:
+    container_name: scrappingdb
+    restart: always
+    ports:
+        - "27017:27017"
+    volumes:
+        - mongodata:/data/db
+  mgclient:
+    container_name: mgclient
+    ports:
+      - "3000:3000"

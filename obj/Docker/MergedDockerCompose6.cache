@@ -1,0 +1,105 @@
+name: dockercompose6365684555379158982
+services:
+  api.scrapping:
+    build:
+      context: C:\Users\hero1\source\repos\playbook1\Playbook
+      dockerfile: API.Scrapping/Dockerfile
+      labels:
+        com.microsoft.created-by: visual-studio
+        com.microsoft.visual-studio.project-name: API.Scrapping
+      target: base
+    container_name: api.scrapping
+    depends_on:
+      scrappingdb:
+        condition: service_started
+    entrypoint:
+    - tail
+    - -f
+    - /dev/null
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      NUGET_FALLBACK_PACKAGES: ""
+      PlaybookDatabase:ConnectionString: mongodb://scrappingdb:27017
+    image: apiscrapping:dev
+    labels:
+      com.microsoft.visualstudio.debuggee.arguments: ' --additionalProbingPath /root/.nuget/packages  "/app/bin/Debug/net6.0/API.Scrapping.dll"'
+      com.microsoft.visualstudio.debuggee.killprogram: /bin/sh -c "if PID=$$(pidof
+        dotnet); then kill $$PID; fi"
+      com.microsoft.visualstudio.debuggee.program: dotnet
+      com.microsoft.visualstudio.debuggee.workingdirectory: /app
+    networks:
+      default: null
+    ports:
+    - mode: ingress
+      target: 80
+      published: "8000"
+      protocol: tcp
+    tty: true
+    volumes:
+    - type: bind
+      source: C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping
+      target: /app
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\hero1\source\repos\playbook1\Playbook
+      target: /src
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\hero1\vsdbg\vs2017u5
+      target: /remote_debugger
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\hero1\.nuget\packages\
+      target: /root/.nuget/packages
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\hero1\AppData\Roaming/ASP.NET/Https
+      target: /root/.aspnet/https
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\hero1\AppData\Roaming/Microsoft/UserSecrets
+      target: /root/.microsoft/usersecrets
+      read_only: true
+      bind:
+        create_host_path: true
+  mgclient:
+    container_name: mgclient
+    image: mongoclient/mongoclient
+    networks:
+      default: null
+    ports:
+    - mode: ingress
+      target: 3000
+      published: "3000"
+      protocol: tcp
+  scrappingdb:
+    container_name: scrappingdb
+    image: mongo
+    networks:
+      default: null
+    ports:
+    - mode: ingress
+      target: 27017
+      published: "27017"
+      protocol: tcp
+    restart: always
+    volumes:
+    - type: volume
+      source: mongodata
+      target: /data/db
+      volume: {}
+networks:
+  default:
+    name: dockercompose6365684555379158982_default
+volumes:
+  mongodata:
+    name: dockercompose6365684555379158982_mongodata
