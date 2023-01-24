@@ -1,5 +1,4 @@
 C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping\bin\Debug\net6.0\appsettings.Development.json
-C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping\bin\Debug\net6.0\appsettings.json
 C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping\bin\Debug\net6.0\API.Scrapping.exe
 C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping\bin\Debug\net6.0\API.Scrapping.deps.json
 C:\Users\hero1\source\repos\playbook1\Playbook\API.Scrapping\bin\Debug\net6.0\API.Scrapping.runtimeconfig.json

@@ -32,6 +32,7 @@ namespace Scrapping.Controllers
         {
             Console.WriteLine("Siemanko");
             Console.WriteLine(string.Format("{0}", consts.GetFileName));
+            Console.WriteLine(string.Format("Collection: {0}", consts.CollectionName));
             var options = new LaunchOptions()
             {
                 Headless = true,
