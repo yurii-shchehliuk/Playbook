@@ -6,6 +6,7 @@ using PuppeteerSharp;
 using Scrapping.Core;
 using Scrapping.Services;
 using System.Data;
+using System.Globalization;
 using System.Text;
 
 namespace Scrapping.Controllers
@@ -30,6 +31,7 @@ namespace Scrapping.Controllers
         public async Task<IActionResult> ParseMathc()
         {
             Console.WriteLine("Siemanko");
+            Console.WriteLine(string.Format("{0}", consts.GetFileName));
             var options = new LaunchOptions()
             {
                 Headless = true,
@@ -50,10 +52,18 @@ namespace Scrapping.Controllers
                 var match = new Match();
 
                 match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
-
-                if (await _mongoService.GetAsync(match.Id) != null)
+                try
                 {
-                    continue;
+
+                    if (await _mongoService.GetAsync(match.Id) != null)
+                    {
+                        continue;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(string.Format("Mongo service couldn't start {0} \n {1}", ex.Message, ex.InnerException));
+                    throw ex;
                 }
 
                 page2 = await browser.NewPageAsync();
@@ -67,7 +77,15 @@ namespace Scrapping.Controllers
                 var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
                 var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
                 match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
-                match.Date = Convert.ToDateTime(matchHeaderData[0]);
+                try
+                {
+                    match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '/'), "d/MM/yyyy hh:mm", CultureInfo.InvariantCulture).ToString();
+
+                }
+                catch
+                {
+                    match.Date = matchHeaderData[0];
+                }
                 match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
                 var matchSummary = await page2.QuerySelectorAllAsync("div.smv__participantRow");
                 foreach (var item in matchSummary)
@@ -98,6 +116,7 @@ namespace Scrapping.Controllers
                 #endregion
                 matchesResults.Add(match);
                 await _mongoService.CreateAsync(match);
+                Console.WriteLine(string.Format("Match: {0}", match.Title));
             }
 
             return View();

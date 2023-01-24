@@ -7,7 +7,7 @@ namespace Domain.Entities
     {
         public string Title { get; set; }
         public string Result { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
         public string THomeId { get; set; }
         public string TGuestId { get; set; }
         public List<string> Incidents { get; set; } = new List<string>();
