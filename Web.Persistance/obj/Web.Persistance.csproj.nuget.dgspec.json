@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {}
+    "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {}
   },
   "projects": {
-    "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj": {
+    "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj",
         "projectName": "Web.Domain",
-        "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj",
+        "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj",
         "packagesPath": "C:\\Users\\hero1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\obj\\",
+        "outputPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\hero1\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -65,14 +65,14 @@
         }
       }
     },
-    "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {
+    "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj",
+        "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj",
         "projectName": "Web.Persistance",
-        "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj",
+        "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj",
         "packagesPath": "C:\\Users\\hero1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\obj\\",
+        "outputPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\hero1\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -89,8 +89,8 @@
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj": {
-                "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj"
+              "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj": {
+                "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj"
               }
             }
           }

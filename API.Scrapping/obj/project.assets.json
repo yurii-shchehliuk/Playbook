@@ -5168,11 +5168,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\API.Scrapping\\API.Scrapping.csproj",
+      "projectUniqueName": "C:\\Users\\hero1\\source\\repos\\Playbook\\API.Scrapping\\API.Scrapping.csproj",
       "projectName": "API.Scrapping",
-      "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\API.Scrapping\\API.Scrapping.csproj",
+      "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\API.Scrapping\\API.Scrapping.csproj",
       "packagesPath": "C:\\Users\\hero1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\API.Scrapping\\obj\\",
+      "outputPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\API.Scrapping\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\hero1\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -5189,11 +5189,11 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj": {
-              "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Domain\\Web.Domain.csproj"
+            "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj": {
+              "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Domain\\Web.Domain.csproj"
             },
-            "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {
-              "projectPath": "C:\\Users\\hero1\\source\\repos\\playbook1\\Playbook\\Web.Persistance\\Web.Persistance.csproj"
+            "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj": {
+              "projectPath": "C:\\Users\\hero1\\source\\repos\\Playbook\\Web.Persistance\\Web.Persistance.csproj"
             }
           }
         }

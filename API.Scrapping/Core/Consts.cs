@@ -7,7 +7,8 @@
         public string URL = _conf["URL"];
         public string BrowserPath = _conf["BrowserPath"];
         //public string SaveDir = _conf["SaveDir"];
-        public int Delay = Convert.ToInt32(_conf["Delay"]);
+        public int OpenPageDelay = Convert.ToInt32(_conf["OpenPageDelay"]);
+        public int WaitForLoad = Convert.ToInt32(_conf["WaitForLoad"]);
         public string CollectionName  = (_conf["PlaybookDatabase:PlaybookCollectionName"]);
 
         public string GetFileName { get { return URL.Remove(0, 36).Replace('/', '_'); } }

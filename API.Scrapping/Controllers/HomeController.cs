@@ -2,6 +2,7 @@
 using Domain.Extentions;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using PuppeteerSharp;
 using Scrapping.Core;
 using Scrapping.Services;
@@ -30,9 +31,9 @@ namespace Scrapping.Controllers
         [HttpGet("ParseMathc")]
         public async Task<IActionResult> ParseMathc()
         {
-            Console.WriteLine("Siemanko");
-            Console.WriteLine(string.Format("{0}", consts.GetFileName));
-            Console.WriteLine(string.Format("Collection: {0}", consts.CollectionName));
+            _logger.LogInformation("Siemanko");
+            _logger.LogInformation(string.Format("{0}", consts.GetFileName));
+            _logger.LogInformation(string.Format("Collection: {0}", consts.CollectionName));
             var options = new LaunchOptions()
             {
                 Headless = true,
@@ -42,10 +43,23 @@ namespace Scrapping.Controllers
 
             browser = await Puppeteer.LaunchAsync(options);
             page = await browser.NewPageAsync();
-            await page.GoToAsync(consts.URL);
+            var result = await page.GoToAsync(consts.URL);
 
-            /// all matches
+
+            /// all matches by class
             var results = await page.QuerySelectorAllAsync("div.event__match");
+            _logger.LogInformation(string.Format("results: {0}", results.Length));
+
+            /// simulate click to load all
+            while (await page.QuerySelectorAsync("a.event__more") != null)
+            {
+                await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
+
+                await Task.Delay(consts.OpenPageDelay);
+                results = await page.QuerySelectorAllAsync("div.event__match");
+                _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
+            }
+
             List<Match> matchesResults = new List<Match>();
 
             foreach (var elem in results)
@@ -70,11 +84,11 @@ namespace Scrapping.Controllers
                 page2 = await browser.NewPageAsync();
 
                 var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-summary";
-                await Task.Delay(consts.Delay);
+                await Task.Delay(consts.OpenPageDelay);
                 await page2.GoToAsync(matchUrl);
 
                 #region summary
-                await Task.Delay(25);
+                await Task.Delay(consts.WaitForLoad);
                 var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
                 var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
                 match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
@@ -139,9 +153,9 @@ namespace Scrapping.Controllers
         private async Task<List<string>> PopulateData(string url, string querySelector)
         {
             page2 = await browser.NewPageAsync();
-            await Task.Delay(consts.Delay);
+            await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);
-            await Task.Delay(50);
+            await Task.Delay(consts.WaitForLoad);
 
             var matchStats2 = await page2.QuerySelectorAllAsync(querySelector);
             List<string> rowData = new List<string>();
