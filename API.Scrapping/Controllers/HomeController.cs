@@ -47,18 +47,28 @@ namespace Scrapping.Controllers
 
 
             /// all matches by class
+
             var results = await page.QuerySelectorAllAsync("div.event__match");
             _logger.LogInformation(string.Format("results: {0}", results.Length));
 
             /// simulate click to load all
-            while (await page.QuerySelectorAsync("a.event__more") != null)
-            {
-                await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
+            //while (await page.QuerySelectorAsync("a.event__more") != null)
+            //{
+            //    await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
 
-                await Task.Delay(consts.OpenPageDelay);
-                results = await page.QuerySelectorAllAsync("div.event__match");
-                _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
-            }
+            //    await Task.Delay(consts.OpenPageDelay);
+            //    results = await page.QuerySelectorAllAsync("div.event__match");
+            //    _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
+            //}
+
+            //var table = await page.QuerySelectorAsync("div.sportName");
+            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { table });
+            //var childNodes2 = await page.EvaluateExpressionAsync("document.querySelector('div.sportName').childNodes");
+            //var childNodes = await page.EvaluateExpressionAsync("document.querySelector('div.event__match').parentElement.childNodes");
+            //var childNodes = await page.EvaluateFunctionAsync("document.querySelector('div.event--results').firstChild.firstChild.children");
+            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { await page.QuerySelectorAsync("div.sportName") });
+            //await page.WaitForFunctionAsync("() => document.querySelector('div.sportName') !== null");
+            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { await page.QuerySelectorAsync("div.sportName") });
 
             List<Match> matchesResults = new List<Match>();
 
@@ -72,6 +82,7 @@ namespace Scrapping.Controllers
 
                     if (await _mongoService.GetAsync(match.Id) != null)
                     {
+                        _logger.LogInformation(string.Format("Match with id: {0} already exists in database", match.Id));
                         continue;
                     }
                 }
@@ -89,28 +100,30 @@ namespace Scrapping.Controllers
 
                 #region summary
                 await Task.Delay(consts.WaitForLoad);
-                var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
-                var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
+                var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
+                match.RoundNr = Convert.ToInt32(matchRound0.Substring(matchRound0.IndexOf("Round") + 6));
+
+                var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
+                var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
                 match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
                 try
                 {
                     match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '/'), "d/MM/yyyy hh:mm", CultureInfo.InvariantCulture).ToString();
-
                 }
                 catch
                 {
                     match.Date = matchHeaderData[0];
                 }
                 match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
-                var matchSummary = await page2.QuerySelectorAllAsync("div.smv__participantRow");
-                foreach (var item in matchSummary)
+                var matchSummary0 = await page2.QuerySelectorAllAsync("div.smv__participantRow");
+                foreach (var item in matchSummary0)
                 {
                     var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                     match.Summary.Add(matchContent);
                 }
                 match.Result = match.Summary.First();
-                var matchIncidents = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
-                foreach (var item in matchIncidents)
+                var matchIncidents0 = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
+                foreach (var item in matchIncidents0)
                 {
                     var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                     match.Incidents.Add(matchContent);
@@ -158,9 +171,9 @@ namespace Scrapping.Controllers
             await page2.GoToAsync(url);
             await Task.Delay(consts.WaitForLoad);
 
-            var matchStats2 = await page2.QuerySelectorAllAsync(querySelector);
+            var matchStats0 = await page2.QuerySelectorAllAsync(querySelector);
             List<string> rowData = new List<string>();
-            foreach (var item in matchStats2)
+            foreach (var item in matchStats0)
             {
                 var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
                 rowData.Add(matchContent);
