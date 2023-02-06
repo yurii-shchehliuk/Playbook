@@ -31,9 +31,9 @@ namespace Scrapping.Controllers
         [HttpGet("ParseMatches")]
         public async Task<IActionResult> ParseMatches()
         {
-            _logger.LogInformation("Siemanko");
-            _logger.LogInformation(string.Format("{0}", consts.GetFileName));
-            _logger.LogInformation(string.Format("Collection: {0}", consts.CollectionName));
+            _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
+            _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
+            _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
             var options = new LaunchOptions()
             {
                 Headless = true,
@@ -43,109 +43,42 @@ namespace Scrapping.Controllers
 
             browser = await Puppeteer.LaunchAsync(options);
             page = await browser.NewPageAsync();
-            var result = await page.GoToAsync(consts.URL);
+            await page.GoToAsync(consts.URL);
 
+            var matchesResults = new List<Match>();
 
-            /// all matches by class
-
-            var results = await page.QuerySelectorAllAsync("div.event__match");
-            _logger.LogInformation(string.Format("results: {0}", results.Length));
-
-            /// simulate click to load all
-            //while (await page.QuerySelectorAsync("a.event__more") != null)
-            //{
-            //    await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
-
-            //    await Task.Delay(consts.OpenPageDelay);
-            //    results = await page.QuerySelectorAllAsync("div.event__match");
-            //    _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
-            //}
-
-            //var table = await page.QuerySelectorAsync("div.sportName");
-            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { table });
-            //var childNodes2 = await page.EvaluateExpressionAsync("document.querySelector('div.sportName').childNodes");
-            //var childNodes = await page.EvaluateExpressionAsync("document.querySelector('div.event__match').parentElement.childNodes");
-            //var childNodes = await page.EvaluateFunctionAsync("document.querySelector('div.event--results').firstChild.firstChild.children");
-            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { await page.QuerySelectorAsync("div.sportName") });
-            //await page.WaitForFunctionAsync("() => document.querySelector('div.sportName') !== null");
-            //var childNodes = await page.EvaluateFunctionAsync("el => el.childNodes", new[] { await page.QuerySelectorAsync("div.sportName") });
-
-            List<Match> matchesResults = new List<Match>();
-
-            foreach (var elem in results)
+            foreach (var elem in await LoadMatches())
             {
-                var match = new Match();
+                var matchId = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
-                match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
                 try
                 {
-
-                    if (await _mongoService.GetAsync(match.Id) != null)
+                    if (await _mongoService.GetAsync(matchId) != null)
                     {
-                        _logger.LogInformation(string.Format("Match with id: {0} already exists in database", match.Id));
+                        _logger.LogInformation(string.Format("Match with id: {0} already exists in database", matchId));
                         continue;
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(string.Format("Mongo service couldn't start {0} \n {1}", ex.Message, ex.InnerException));
+                    _logger.LogError(string.Format("Mongo service couldn't start {0} \n {1}, use 'net start MongoDB' to run", ex.Message, ex.InnerException));
                     throw ex;
+
                 }
 
-                page2 = await browser.NewPageAsync();
-
-                var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-summary";
-                await Task.Delay(consts.OpenPageDelay);
-                await page2.GoToAsync(matchUrl);
-
-                #region summary
-                await Task.Delay(consts.WaitForLoad);
-                var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
-                match.RoundNr = Convert.ToInt32(matchRound0.Substring(matchRound0.IndexOf("Round") + 6));
-
-                var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
-                var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
-                match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
                 try
                 {
-                    match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '/'), "d/MM/yyyy hh:mm", CultureInfo.InvariantCulture).ToString();
+                    var match = await ParseMatchPage(elem);
+
+                    matchesResults.Add(match);
+                    await _mongoService.CreateAsync(match);
+                    _logger.LogInformation(string.Format("[{0}] Match added: {1}", DateTime.Now, match.Title));
                 }
-                catch
+                catch (Exception ex)
                 {
-                    match.Date = matchHeaderData[0];
+                    _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
+                    throw ex;
                 }
-                match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
-                var matchSummary0 = await page2.QuerySelectorAllAsync("div.smv__participantRow");
-                foreach (var item in matchSummary0)
-                {
-                    var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                    match.Summary.Add(matchContent);
-                }
-                match.Result = match.Summary.First();
-                var matchIncidents0 = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
-                foreach (var item in matchIncidents0)
-                {
-                    var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                    match.Incidents.Add(matchContent);
-                }
-                #endregion
-
-                #region stats per half
-
-                matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/0";
-                match.Stats0 = await PopulateData(matchUrl, "div.stat__row");
-
-                matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/1";
-                match.Stats1 = await PopulateData(matchUrl, "div.stat__row");
-
-                matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/2";
-                match.Stats2 = await PopulateData(matchUrl, "div.stat__row");
-
-                #endregion
-                matchesResults.Add(match);
-                await _mongoService.CreateAsync(match);
-                _logger.LogInformation(string.Format("Match: {0}", match.Title));
-
             }
 
             return View();
@@ -157,13 +90,89 @@ namespace Scrapping.Controllers
             return await _mongoService.GetAsync(); ;
         }
 
+        /// <summary>
+        /// simulate click to load all
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IElementHandle[]> LoadMatches()
+        {
+            //load all
+            while (await page.QuerySelectorAsync("a.event__more") != null)
+            {
+                await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
+                await Task.Delay(consts.OpenPageDelay);
+            }
+            //parse all by calss
+            var results = await page.QuerySelectorAllAsync("div.event__match");
+            _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
+
+            return results;
+        }
+
+        private async Task<Match> ParseMatchPage(IElementHandle elem)
+        {
+            var match = new Match();
+            match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
+
+            page2 = await browser.NewPageAsync();
+
+            var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-summary";
+            await Task.Delay(consts.OpenPageDelay);
+            await page2.GoToAsync(matchUrl);
+
+            #region summary
+            await Task.Delay(consts.WaitForLoad);
+            var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
+            match.RoundNr = matchRound0.Substring(matchRound0.IndexOf("Round") + 6);
+
+            var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
+            var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
+            match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
+            _logger.LogInformation(string.Format("Parsing {0}", match.Title));
+            try
+            {
+                match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '/'), "d/MM/yyyy hh:mm", CultureInfo.InvariantCulture).ToString();
+            }
+            catch
+            {
+                match.Date = matchHeaderData[0];
+            }
+
+            match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
+
+            var matchSummary0 = await page2.QuerySelectorAllAsync("div.smv__participantRow");
+            foreach (var item in matchSummary0)
+            {
+                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
+                match.Summary.Add(matchContent);
+            }
+
+            var matchIncidents0 = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
+            foreach (var item in matchIncidents0)
+            {
+                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
+                match.Incidents.Add(matchContent);
+            }
+            #endregion
+
+            #region stats per half
+
+            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/0";
+            match.Stats0 = await PopulateData(matchUrl, "div.stat__row");
+
+            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/1";
+            match.Stats1 = await PopulateData(matchUrl, "div.stat__row");
+
+            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/2";
+            match.Stats2 = await PopulateData(matchUrl, "div.stat__row");
+            #endregion
+
+            return match;
+        }
 
         /// <summary>
         /// assign data to model
         /// </summary>
-        /// <param name="url"></param>
-        /// <param name="querySelector"></param>
-        /// <returns></returns>
         private async Task<List<string>> PopulateData(string url, string querySelector)
         {
             page2 = await browser.NewPageAsync();
@@ -181,7 +190,6 @@ namespace Scrapping.Controllers
 
             return rowData;
         }
-
 
         private async Task<IPage> MontecarloSimulation()
         {

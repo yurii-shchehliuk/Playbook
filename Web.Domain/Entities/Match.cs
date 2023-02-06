@@ -10,7 +10,7 @@ namespace Domain.Entities
         public string Date { get; set; }
         public string THomeId { get; set; }
         public string TGuestId { get; set; }
-        public int RoundNr { get; set; }
+        public string RoundNr { get; set; }
         public List<string> Incidents { get; set; } = new List<string>();
         public List<string> Summary { get; set; } = new List<string>();
         public List<string> Stats0 { get; set; } = new List<string>();
