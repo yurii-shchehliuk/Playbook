@@ -166,7 +166,7 @@ namespace Scrapping.Controllers
             matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/2";
             match.Stats2 = await PopulateData(matchUrl, "div.stat__row");
             #endregion
-
+            await page2.CloseAsync();
             return match;
         }
 
