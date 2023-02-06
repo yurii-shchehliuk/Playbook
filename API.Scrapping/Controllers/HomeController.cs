@@ -28,8 +28,8 @@ namespace Scrapping.Controllers
             consts = new Consts();
         }
 
-        [HttpGet("ParseMathc")]
-        public async Task<IActionResult> ParseMathc()
+        [HttpGet("ParseMatches")]
+        public async Task<IActionResult> ParseMatches()
         {
             _logger.LogInformation("Siemanko");
             _logger.LogInformation(string.Format("{0}", consts.GetFileName));
