@@ -131,7 +131,8 @@ namespace Scrapping.Controllers
                 #endregion
                 matchesResults.Add(match);
                 await _mongoService.CreateAsync(match);
-                Console.WriteLine(string.Format("Match: {0}", match.Title));
+                _logger.LogInformation(string.Format("Match: {0}", match.Title));
+
             }
 
             return View();
