@@ -16,11 +16,10 @@ namespace Scrapping.Controllers
     public class HomeController : BaseController, IDisposable
     {
         private readonly ILogger<HomeController> _logger;
-
         private Consts consts;
         private readonly MongoService<Domain.Entities.Match> _mongoService;
 
-        public HomeController(ILogger<HomeController> logger, MongoService<Match> mongoService)
+        public HomeController(ILogger<HomeController> logger, MongoService<Domain.Entities.Match> mongoService)
         {
             _logger = logger;
             _mongoService = mongoService;
@@ -31,13 +30,7 @@ namespace Scrapping.Controllers
         [HttpGet("ParseMatches")]
         public async Task<IActionResult> ParseMatches()
         {
-            _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
-            _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
-            _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
-
-            var settings = await HomeSettings.Init();
-
-            await HomeSettings.page.GoToAsync(consts.URL);
+            var settings = await BrowserSettings.Init(consts);
 
             var matchesResults = new List<Match>();
 
@@ -74,6 +67,7 @@ namespace Scrapping.Controllers
                 }
             }
 
+            settings.Dispose();
             return View();
         }
 
@@ -89,7 +83,13 @@ namespace Scrapping.Controllers
         /// <returns></returns>
         private async Task<IElementHandle[]> LoadMatches()
         {
-            var page = HomeSettings.page;
+            _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
+            _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
+            _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
+
+            var page = BrowserSettings.page;
+            await page.GoToAsync(consts.URL);
+
             //load all
             while (await page.QuerySelectorAsync("a.event__more") != null)
             {
@@ -108,11 +108,11 @@ namespace Scrapping.Controllers
             var match = new Match();
             match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
-            using var page2 = await HomeSettings.browser.NewPageAsync();
+            using var page2 = await BrowserSettings.browser.NewPageAsync();
 
-            var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-summary";
+            const string matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/";
             await Task.Delay(consts.OpenPageDelay);
-            await page2.GoToAsync(matchUrl);
+            await page2.GoToAsync(matchUrl + "match-summary/");
 
             #region summary
             await Task.Delay(consts.WaitForLoad);
@@ -151,14 +151,11 @@ namespace Scrapping.Controllers
 
             #region stats per half
 
-            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/0";
-            match.Stats0 = await PopulateData(matchUrl, "div.stat__row");
+            match.Stats0 = await PopulateData(matchUrl + "matchUrl/match-statistics/0", "div.stat__row", page2);
 
-            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/1";
-            match.Stats1 = await PopulateData(matchUrl, "div.stat__row");
+            match.Stats1 = await PopulateData(matchUrl + "matchUrl/match-statistics/1", "div.stat__row", page2);
 
-            matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-statistics/2";
-            match.Stats2 = await PopulateData(matchUrl, "div.stat__row");
+            match.Stats2 = await PopulateData(matchUrl + "matchUrl/match-statistics/2", "div.stat__row", page2);
             #endregion
             await page2.CloseAsync();
             return match;
@@ -167,9 +164,8 @@ namespace Scrapping.Controllers
         /// <summary>
         /// assign data to model
         /// </summary>
-        private async Task<List<string>> PopulateData(string url, string querySelector)
+        private async Task<List<string>> PopulateData(string url, string querySelector, IPage page2)
         {
-            using var page2 = await HomeSettings.browser.NewPageAsync();
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);
             await Task.Delay(consts.WaitForLoad);
@@ -190,21 +186,20 @@ namespace Scrapping.Controllers
             return null;
         }
     }
-    internal sealed class HomeSettings : IDisposable
+    internal sealed class BrowserSettings : IDisposable
     {
-        public static IBrowser browser { get; internal set; }
-        public static IPage page { get; internal set; }
-        private static readonly Consts consts = new Consts();
-        private HomeSettings()
+        public static IBrowser browser;
+        public static IPage page;
+        private BrowserSettings()
         {
         }
-        private static HomeSettings _instance;
+        private static BrowserSettings _instance;
 
-        public static async Task<HomeSettings> Init()
+        public static async Task<BrowserSettings> Init(Consts consts)
         {
             if (_instance == null)
             {
-                _instance = new HomeSettings();
+                _instance = new BrowserSettings();
                 var options = new LaunchOptions()
                 {
                     Headless = true,
