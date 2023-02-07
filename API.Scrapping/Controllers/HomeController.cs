@@ -48,7 +48,7 @@ namespace Scrapping.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(string.Format("Mongo service couldn't start {0} \n {1}, use 'net start MongoDB' to run", ex.Message, ex.InnerException));
+                    _logger.LogError(string.Format("Mongo service couldn't start, use 'net start MongoDB' to run \n {0} \n {1}", ex.Message, ex.InnerException));
                     throw ex;
                 }
 
@@ -110,7 +110,7 @@ namespace Scrapping.Controllers
 
             using var page2 = await BrowserSettings.browser.NewPageAsync();
 
-            const string matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/";
+            var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/";
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(matchUrl + "match-summary/");
 
