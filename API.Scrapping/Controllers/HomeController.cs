@@ -3,6 +3,7 @@ using Domain.Extentions;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 using Scrapping.Core;
 using Scrapping.Services;
@@ -12,12 +13,10 @@ using System.Text;
 
 namespace Scrapping.Controllers
 {
-    public class HomeController : BaseController
+    public class HomeController : BaseController, IDisposable
     {
         private readonly ILogger<HomeController> _logger;
-        private IBrowser browser;
-        private IPage page;
-        private IPage page2;
+
         private Consts consts;
         private readonly MongoService<Domain.Entities.Match> _mongoService;
 
@@ -28,22 +27,17 @@ namespace Scrapping.Controllers
             consts = new Consts();
         }
 
+
         [HttpGet("ParseMatches")]
         public async Task<IActionResult> ParseMatches()
         {
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
             _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
             _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
-            var options = new LaunchOptions()
-            {
-                Headless = true,
-                ExecutablePath = consts.BrowserPath,
-                Product = Product.Chrome
-            };
 
-            browser = await Puppeteer.LaunchAsync(options);
-            page = await browser.NewPageAsync();
-            await page.GoToAsync(consts.URL);
+            var settings = await HomeSettings.Init();
+
+            await HomeSettings.page.GoToAsync(consts.URL);
 
             var matchesResults = new List<Match>();
 
@@ -63,7 +57,6 @@ namespace Scrapping.Controllers
                 {
                     _logger.LogError(string.Format("Mongo service couldn't start {0} \n {1}, use 'net start MongoDB' to run", ex.Message, ex.InnerException));
                     throw ex;
-
                 }
 
                 try
@@ -96,6 +89,7 @@ namespace Scrapping.Controllers
         /// <returns></returns>
         private async Task<IElementHandle[]> LoadMatches()
         {
+            var page = HomeSettings.page;
             //load all
             while (await page.QuerySelectorAsync("a.event__more") != null)
             {
@@ -114,7 +108,7 @@ namespace Scrapping.Controllers
             var match = new Match();
             match.Id = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
-            page2 = await browser.NewPageAsync();
+            using var page2 = await HomeSettings.browser.NewPageAsync();
 
             var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/match-summary";
             await Task.Delay(consts.OpenPageDelay);
@@ -175,7 +169,7 @@ namespace Scrapping.Controllers
         /// </summary>
         private async Task<List<string>> PopulateData(string url, string querySelector)
         {
-            page2 = await browser.NewPageAsync();
+            using var page2 = await HomeSettings.browser.NewPageAsync();
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);
             await Task.Delay(consts.WaitForLoad);
@@ -194,6 +188,41 @@ namespace Scrapping.Controllers
         private async Task<IPage> MontecarloSimulation()
         {
             return null;
+        }
+    }
+    internal sealed class HomeSettings : IDisposable
+    {
+        public static IBrowser browser { get; internal set; }
+        public static IPage page { get; internal set; }
+        private static readonly Consts consts = new Consts();
+        private HomeSettings()
+        {
+        }
+        private static HomeSettings _instance;
+
+        public static async Task<HomeSettings> Init()
+        {
+            if (_instance == null)
+            {
+                _instance = new HomeSettings();
+                var options = new LaunchOptions()
+                {
+                    Headless = true,
+                    ExecutablePath = consts.BrowserPath,
+                    Product = Product.Chrome
+                };
+
+                browser = await Puppeteer.LaunchAsync(options);
+                page = await browser.NewPageAsync();
+            }
+            return _instance;
+        }
+
+        public void Dispose()
+        {
+            page.CloseAsync();
+            browser.CloseAsync();
+            browser.Dispose();
         }
     }
 }
