@@ -30,7 +30,7 @@ namespace Scrapping.Controllers
         [HttpGet("ParseMatches")]
         public async Task<IActionResult> ParseMatches()
         {
-            var settings = await BrowserSettings.Init(consts);
+            using var settings = await BrowserSettings.Init(consts);
 
             var matchesResults = new List<Match>();
 
@@ -67,6 +67,7 @@ namespace Scrapping.Controllers
                 }
             }
 
+            _logger.LogInformation(string.Format("\n[{0}] Parsing finished", DateTime.Now));
             settings.Dispose();
             return View();
         }
@@ -81,6 +82,7 @@ namespace Scrapping.Controllers
         /// simulate click to load all
         /// </summary>
         /// <returns></returns>
+        /// <todo>check xPath to get all the child of the parent table</todo>
         private async Task<IElementHandle[]> LoadMatches()
         {
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
@@ -158,6 +160,7 @@ namespace Scrapping.Controllers
             match.Stats2 = await PopulateData(matchUrl + "matchUrl/match-statistics/2", "div.stat__row", page2);
             #endregion
             await page2.CloseAsync();
+            await page2.DisposeAsync();
             return match;
         }
 
