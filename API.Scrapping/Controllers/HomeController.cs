@@ -153,11 +153,11 @@ namespace Scrapping.Controllers
 
             #region stats per half
 
-            match.Stats0 = await PopulateData(matchUrl + "matchUrl/match-statistics/0", "div.stat__row", page2);
+            match.Stats0 = await PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2);
 
-            match.Stats1 = await PopulateData(matchUrl + "matchUrl/match-statistics/1", "div.stat__row", page2);
+            match.Stats1 = await PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2);
 
-            match.Stats2 = await PopulateData(matchUrl + "matchUrl/match-statistics/2", "div.stat__row", page2);
+            match.Stats2 = await PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2);
             #endregion
             await page2.CloseAsync();
             await page2.DisposeAsync();
@@ -167,7 +167,7 @@ namespace Scrapping.Controllers
         /// <summary>
         /// assign data to model
         /// </summary>
-        private async Task<List<string>> PopulateData(string url, string querySelector, IPage page2)
+        private async Task<List<string>> PopulateData(string url, string querySelector, IPage page2) //https://www.flashscore.com/match/Y73gWr01/#/match-summary/match-statistics/0
         {
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);
@@ -205,7 +205,7 @@ namespace Scrapping.Controllers
                 _instance = new BrowserSettings();
                 var options = new LaunchOptions()
                 {
-                    Headless = true,
+                    Headless = false,
                     ExecutablePath = consts.BrowserPath,
                     Product = Product.Chrome
                 };
