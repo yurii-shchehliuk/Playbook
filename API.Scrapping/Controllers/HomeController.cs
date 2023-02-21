@@ -136,11 +136,11 @@ namespace API.Scrapping.Controllers
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             try
             {
-                match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '/'), "d/MM/yyyy hh:mm", CultureInfo.InvariantCulture).ToString();
+                match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '-'), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
             }
             catch
             {
-                match.Date = matchHeaderData[0];
+                //match.Date = matchHeaderData[0];
             }
 
             match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];

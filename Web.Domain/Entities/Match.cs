@@ -12,7 +12,7 @@ namespace Web.Domain.Entities
     {
         public string Title { get; set; }
         public string Result { get; set; }
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
         public Team THome { get; set; }
         public Team TGuest { get; set; }
         public string RoundNr { get; set; }
