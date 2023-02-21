@@ -1,29 +1,31 @@
-﻿using Domain.Entities;
-using Domain.Extentions;
-using Domain.Interfaces;
+﻿using API.Scrapping.Core;
+using API.Scrapping.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using Microsoft.Extensions.Options;
 using PuppeteerSharp;
-using Scrapping.Core;
-using Scrapping.Services;
 using System.Data;
 using System.Globalization;
 using System.Text;
+using Web.Domain.Entities;
+using Web.Domain.Extentions;
 
-namespace Scrapping.Controllers
+namespace API.Scrapping.Controllers
 {
-    public class HomeController : BaseController, IDisposable
+    [ApiController]
+    [Route("api/[controller]")]
+    public class HomeController : ControllerBase, IDisposable
     {
         private readonly ILogger<HomeController> _logger;
         private Consts consts;
-        private readonly MongoService<Domain.Entities.Match> _mongoService;
+        private readonly MongoService<Match> _mongoService;
 
-        public HomeController(ILogger<HomeController> logger, MongoService<Domain.Entities.Match> mongoService)
+        public HomeController(ILogger<HomeController> logger, MongoService<Match> mongoService)
         {
             _logger = logger;
             _mongoService = mongoService;
             consts = new Consts();
+            _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
         }
 
 
@@ -42,7 +44,7 @@ namespace Scrapping.Controllers
                 {
                     if (await _mongoService.GetAsync(matchId) != null)
                     {
-                        _logger.LogInformation(string.Format("Match with id: {0} already exists in database", matchId));
+                        _logger.LogWarning(string.Format("Match with id: {0} already exists in database", matchId));
                         continue;
                     }
                 }
@@ -69,13 +71,13 @@ namespace Scrapping.Controllers
 
             _logger.LogInformation(string.Format("\n[{0}] Parsing finished", DateTime.Now));
             settings.Dispose();
-            return View();
+            return Ok();
         }
 
         [HttpGet("GetMatches")]
-        public async Task<ActionResult<IEnumerable<Domain.Entities.Match>>> GetMatches()
+        public async Task<ActionResult<IEnumerable<Match>>> GetMatches()
         {
-            return await _mongoService.GetAsync(); ;
+            return await _mongoService.GetAsync();
         }
 
         /// <summary>
@@ -85,7 +87,6 @@ namespace Scrapping.Controllers
         /// <todo>check xPath to get all the child of the parent table</todo>
         private async Task<IElementHandle[]> LoadMatches()
         {
-            _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
             _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
             _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
 
@@ -116,14 +117,22 @@ namespace Scrapping.Controllers
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(matchUrl + "match-summary/");
 
+            #region team
+            var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
+            var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
+            match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
+
+            var participants = await page2.QuerySelectorAllAsync("a.participant__participantLink");
+            match.THome = await new Team().ConfigTeam(participants.FirstOrDefault(), matchHeaderData[1]);
+            match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault(), matchHeaderData.LastOrDefault());
+            #endregion
+
+
             #region summary
             await Task.Delay(consts.WaitForLoad);
             var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
             match.RoundNr = matchRound0.Substring(matchRound0.IndexOf("Round") + 6);
 
-            var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
-            var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
-            match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             try
             {
@@ -136,57 +145,33 @@ namespace Scrapping.Controllers
 
             match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
 
-            var matchSummary0 = await page2.QuerySelectorAllAsync("div.smv__participantRow");
-            foreach (var item in matchSummary0)
-            {
-                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                match.Summary.Add(matchContent);
-            }
+            match.Summary = await match.PopulateData("div.smv__participantRow", page2);
+            match.Incidents = await match.PopulateData("div.smv__incidentsHeader", page2);
 
-            var matchIncidents0 = await page2.QuerySelectorAllAsync("div.smv__incidentsHeader");
-            foreach (var item in matchIncidents0)
-            {
-                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                match.Incidents.Add(matchContent);
-            }
             #endregion
 
             #region stats per half
 
-            match.Stats0 = await PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2);
+            match.Stats0 = await match.PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
 
-            match.Stats1 = await PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2);
+            match.Stats1 = await match.PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
 
-            match.Stats2 = await PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2);
+            match.Stats2 = await match.PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
             #endregion
             await page2.CloseAsync();
             await page2.DisposeAsync();
             return match;
         }
 
-        /// <summary>
-        /// assign data to model
-        /// </summary>
-        private async Task<List<string>> PopulateData(string url, string querySelector, IPage page2) //https://www.flashscore.com/match/Y73gWr01/#/match-summary/match-statistics/0
-        {
-            await Task.Delay(consts.OpenPageDelay);
-            await page2.GoToAsync(url);
-            await Task.Delay(consts.WaitForLoad);
 
-            var matchStats0 = await page2.QuerySelectorAllAsync(querySelector);
-            List<string> rowData = new List<string>();
-            foreach (var item in matchStats0)
-            {
-                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                rowData.Add(matchContent);
-            }
-
-            return rowData;
-        }
 
         private async Task<IPage> MontecarloSimulation()
         {
             return null;
+        }
+
+        public void Dispose()
+        {
         }
     }
     internal sealed class BrowserSettings : IDisposable
@@ -200,19 +185,20 @@ namespace Scrapping.Controllers
 
         public static async Task<BrowserSettings> Init(Consts consts)
         {
-            if (_instance == null)
-            {
-                _instance = new BrowserSettings();
-                var options = new LaunchOptions()
-                {
-                    Headless = false,
-                    ExecutablePath = consts.BrowserPath,
-                    Product = Product.Chrome
-                };
+            if (_instance != null)
+                return _instance;
 
-                browser = await Puppeteer.LaunchAsync(options);
-                page = await browser.NewPageAsync();
-            }
+            _instance = new BrowserSettings();
+            var options = new LaunchOptions()
+            {
+                Headless = false,
+                ExecutablePath = consts.BrowserPath,
+                Product = Product.Chrome
+            };
+
+            browser = await Puppeteer.LaunchAsync(options);
+            page = await browser.NewPageAsync();
+
             return _instance;
         }
 

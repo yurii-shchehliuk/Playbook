@@ -1,6 +1,5 @@
-﻿using MongoDB.Driver;
-
-namespace Scrapping.Services
+﻿
+namespace API.Scrapping.Services
 {
     public interface IMongoService<T>
     {

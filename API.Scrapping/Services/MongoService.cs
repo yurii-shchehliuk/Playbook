@@ -1,12 +1,11 @@
-﻿using Domain;
-using Domain.Entities;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Persistance;
+using Web.Domain.Entities;
+using Web.Persistance;
 
-namespace Scrapping.Services
+namespace API.Scrapping.Services
 {
-    public class MongoService<T> : IMongoService<T> where T: BaseEntity
+    public class MongoService<T> : IMongoService<T> where T : BaseEntity
     {
         private readonly IMongoCollection<T> _mongoCollection;
 
@@ -22,6 +21,7 @@ namespace Scrapping.Services
             _mongoCollection = mongoDatabase.GetCollection<T>(
                 itemStoreDatabaseSettings.Value.PlaybookCollectionName);
         }
+
 
         public async Task<List<T>> GetAsync() =>
             await _mongoCollection.Find(_ => true).ToListAsync();

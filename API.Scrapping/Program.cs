@@ -1,21 +1,16 @@
-using Domain.Interfaces;
+using API.Scrapping.Core;
+using API.Scrapping.Services;
 using Microsoft.EntityFrameworkCore;
-using Persistance;
-using Scrapping.Core;
-using Scrapping.Services;
+using Web.Persistance;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers().AddJsonOptions(
         options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// register mssql
-//builder.Services.AddDbContext<AppDbContext>(x =>
-//                x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // register mongodb
 builder.Services.Configure<MongoSettings>(

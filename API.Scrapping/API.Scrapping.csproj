@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Web.Domain\Web.Domain.csproj" />
-    <ProjectReference Include="..\Web.Persistance\Web.Persistance.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Extentions
+namespace Web.Domain.Extentions
 {
     public static class Common
     {
