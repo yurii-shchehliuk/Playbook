@@ -131,7 +131,7 @@ namespace API.Scrapping.Controllers
             #region summary
             await Task.Delay(consts.WaitForLoad);
             var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
-            match.RoundNr = matchRound0.Substring(matchRound0.IndexOf("Round") + 6);
+            match.RoundNr = Convert.ToInt32(matchRound0.Substring(matchRound0.IndexOf("Round") + 6));
 
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             try

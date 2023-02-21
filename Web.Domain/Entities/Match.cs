@@ -15,7 +15,7 @@ namespace Web.Domain.Entities
         public DateTime Date { get; set; }
         public Team THome { get; set; }
         public Team TGuest { get; set; }
-        public string RoundNr { get; set; }
+        public int RoundNr { get; set; }
         public List<string> Incidents { get; set; } = new List<string>();
         public List<string> Summary { get; set; } = new List<string>();
         public List<string> Stats0 { get; set; } = new List<string>();
