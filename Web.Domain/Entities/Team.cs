@@ -10,20 +10,19 @@ namespace Web.Domain.Entities
         {
 
         }
-        public Team(string id, string name, string nameFull)
+        public Team(string id, string name)
         {
             Id = id;
             Name = name;
-            NameFull = nameFull;
         }
         public string Name { get; set; }
-        public string NameFull { get; set; }
-        public List<Match> Matches { get; set; } = new List<Match>();
+        public int GoalsPerFirst { get; set; }
+        public int GoalsPerSecond{ get; set; }
 
-        public async Task<Team> ConfigTeam(IElementHandle element, string fullName = "")
+        public async Task<Team> ConfigTeam(IElementHandle element)
         {
             var participantHomeId = (await element.GetPropertyAsync("href")).Convert().Split('/');
-            var team = new Team(participantHomeId[5], participantHomeId[4], fullName);
+            var team = new Team(participantHomeId[5], participantHomeId[4]);
             return team;
         }
 

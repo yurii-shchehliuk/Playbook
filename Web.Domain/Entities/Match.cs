@@ -11,12 +11,10 @@ namespace Web.Domain.Entities
     public class Match : BaseEntity, IFlashscore
     {
         public string Title { get; set; }
-        public string Result { get; set; }
         public DateTime Date { get; set; }
         public Team THome { get; set; }
         public Team TGuest { get; set; }
         public int RoundNr { get; set; }
-        public List<string> Incidents { get; set; } = new List<string>();
         public List<string> Summary { get; set; } = new List<string>();
         public List<string> Stats0 { get; set; } = new List<string>();
         public List<string> Stats1 { get; set; } = new List<string>();

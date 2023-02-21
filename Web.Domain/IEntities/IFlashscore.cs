@@ -8,7 +8,6 @@ namespace Web.Domain.IEntities
 {
     public interface IFlashscore
     {
-       List<string> Incidents { get; set; }
        List<string> Summary { get; set; }
        List<string> Stats0 { get; set; }
        List<string> Stats1 { get; set; }

@@ -118,20 +118,28 @@ namespace API.Scrapping.Controllers
             await page2.GoToAsync(matchUrl + "match-summary/");
 
             #region team
-            var matchHeader0 = await page2.QuerySelectorAsync("div.duelParticipant");
-            var matchHeaderData = (await matchHeader0.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
+            var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
+            var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
             match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
+            var matchIncidents2 = (await match.PopulateData("div.smv__incidentsHeader", page2));
 
             var participants = await page2.QuerySelectorAllAsync("a.participant__participantLink");
             match.THome = await new Team().ConfigTeam(participants.FirstOrDefault(), matchHeaderData[1]);
             match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault(), matchHeaderData.LastOrDefault());
+
+            var matchIncidentsFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
+            match.THome.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[0]);
+            match.TGuest.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[1]);
+            var matchIncidentsSecond = (await match.PopulateData("div.smv__incidentsHeader", page2)).LastOrDefault().Split(',').LastOrDefault().Split('-');
+            match.THome.GoalsPerSecond = Convert.ToInt32(matchIncidentsSecond[0]);
+            match.TGuest.GoalsPerSecond = Convert.ToInt32(matchIncidentsSecond[1]);
             #endregion
 
 
             #region summary
             await Task.Delay(consts.WaitForLoad);
-            var matchRound0 = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
-            match.RoundNr = Convert.ToInt32(matchRound0.Substring(matchRound0.IndexOf("Round") + 6));
+            var matchRound = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
+            match.RoundNr = Convert.ToInt32(matchRound.Substring(matchRound.IndexOf("Round") + 6));
 
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             try
@@ -143,10 +151,9 @@ namespace API.Scrapping.Controllers
                 //match.Date = matchHeaderData[0];
             }
 
-            match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
+            //match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
 
             match.Summary = await match.PopulateData("div.smv__participantRow", page2);
-            match.Incidents = await match.PopulateData("div.smv__incidentsHeader", page2);
 
             #endregion
 
@@ -178,9 +185,7 @@ namespace API.Scrapping.Controllers
     {
         public static IBrowser browser;
         public static IPage page;
-        private BrowserSettings()
-        {
-        }
+
         private static BrowserSettings _instance;
 
         public static async Task<BrowserSettings> Init(Consts consts)
