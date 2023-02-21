@@ -124,8 +124,8 @@ namespace API.Scrapping.Controllers
             var matchIncidents2 = (await match.PopulateData("div.smv__incidentsHeader", page2));
 
             var participants = await page2.QuerySelectorAllAsync("a.participant__participantLink");
-            match.THome = await new Team().ConfigTeam(participants.FirstOrDefault(), matchHeaderData[1]);
-            match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault(), matchHeaderData.LastOrDefault());
+            match.THome = await new Team().ConfigTeam(participants.FirstOrDefault());
+            match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault());
 
             var matchIncidentsFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
             match.THome.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[0]);
