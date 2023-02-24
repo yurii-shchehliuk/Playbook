@@ -1,5 +1,6 @@
 ﻿using API.Scrapping.Core;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using PuppeteerSharp;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
@@ -16,29 +17,7 @@ namespace Web.Domain.Entities
         public Team TGuest { get; set; }
         public int RoundNr { get; set; }
         public List<string> Summary { get; set; } = new List<string>();
-        public List<string> Stats0 { get; set; } = new List<string>();
-        public List<string> Stats1 { get; set; } = new List<string>();
-        public List<string> Stats2 { get; set; } = new List<string>();
 
-        /// <summary>
-        /// assign data to model
-        /// </summary>
-        public async Task<List<string>> PopulateData(string url, string querySelector, IPage page2, Consts consts)
-        {
-            await Task.Delay(consts.OpenPageDelay);
-            await page2.GoToAsync(url);
-            await Task.Delay(consts.WaitForLoad);
-
-            var matchData = await page2.QuerySelectorAllAsync(querySelector);
-            List<string> rowData = new List<string>();
-            foreach (var item in matchData)
-            {
-                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                rowData.Add(matchContent);
-            }
-
-            return rowData;
-        }
 
         public async Task<List<string>> PopulateData(string querySelector, IPage page2)
         {
@@ -50,6 +29,37 @@ namespace Web.Domain.Entities
                 matchIncidents.Add(matchContent);
             }
             return matchIncidents;
+        }
+
+        /// <summary>
+        /// assign data to model
+        /// </summary>
+        public async Task<Stats[]> PopulateData(string url, string querySelector, IPage page2, Consts consts)
+        {
+            await Task.Delay(consts.OpenPageDelay);
+            await page2.GoToAsync(url);
+            await Task.Delay(consts.WaitForLoad);
+
+            var matchData = await page2.QuerySelectorAllAsync(querySelector);
+            Dictionary<string, string> homeData = new Dictionary<string, string>();
+            Dictionary<string, string> guestData = new Dictionary<string, string>();
+
+            foreach (var item in matchData)
+            {
+                var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
+                var rowSplit = matchContent.Replace("%", "").Replace("(xG)", "").Split(',');
+                var colName = rowSplit[1].Replace(" ", "");
+
+                homeData.Add(colName, rowSplit[0]);
+                guestData.Add(colName, rowSplit[2]);
+            }
+            string homeDict = JsonConvert.SerializeObject(homeData);
+            var homeStats = JsonConvert.DeserializeObject<Stats>(homeDict);
+
+            string guestDict = JsonConvert.SerializeObject(guestData);
+            var guestStats = JsonConvert.DeserializeObject<Stats>(guestDict);
+
+            return new Stats[] { homeStats, guestStats };
         }
     }
 }

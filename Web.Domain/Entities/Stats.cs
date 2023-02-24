@@ -2,24 +2,23 @@
 {
     public class Stats
     {
-        public int Id { get; set; }
-        public string[] Data { get; set; }
-        public string BallPossession { get; set; }
-        public string GoalAttempts { get; set; }
-        public string ShotsOnGoal { get; set; }
-        public string ShotsOffGoal { get; set; }
-        public string BlockedShots { get; set; }
-        public string FreeKicks { get; set; }
-        public string CornerKicks { get; set; }
-        public string Offsides { get; set; }
-        public string ThrowIn { get; set; }
-        public string GoalkeeperSaves { get; set; }
-        public string Fouls { get; set; }
-        public string YellowCards { get; set; }
-        public string TotalPasses { get; set; }
-        public string CompletedPasses { get; set; }
-        public string Tackles { get; set; }
-        public string Attacks { get; set; }
-        public string DangerousAttacks { get; set; }
+        public float ExpectedGoals { get; set; } = 0;
+        public int BallPossession { get; set; }
+        public int GoalAttempts { get; set; }
+        public int ShotsOnGoal { get; set; }
+        public int ShotsOffGoal { get; set; }
+        public int BlockedShots { get; set; }
+        public int FreeKicks { get; set; }
+        public int CornerKicks { get; set; }
+        public int Offsides { get; set; }
+        public int ThrowIn { get; set; }
+        public int GoalkeeperSaves { get; set; }
+        public int Fouls { get; set; }
+        public int YellowCards { get; set; }
+        public int TotalPasses { get; set; }
+        public int CompletedPasses { get; set; }
+        public int Tackles { get; set; }
+        public int Attacks { get; set; }
+        public int DangerousAttacks { get; set; }
     }
 }

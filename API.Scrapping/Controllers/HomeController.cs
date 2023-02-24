@@ -51,7 +51,7 @@ namespace API.Scrapping.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(string.Format("Mongo service couldn't start, use 'net start MongoDB' to run \n {0} \n {1}", ex.Message, ex.InnerException));
-                    throw ex;
+                    throw;
                 }
 
                 try
@@ -65,7 +65,7 @@ namespace API.Scrapping.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
-                    throw ex;
+                    throw;
                 }
             }
 
@@ -127,6 +127,8 @@ namespace API.Scrapping.Controllers
             match.THome = await new Team().ConfigTeam(participants.FirstOrDefault());
             match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault());
 
+            // add to teams-collection
+
             var matchIncidentsFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
             match.THome.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[0]);
             match.TGuest.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[1]);
@@ -142,14 +144,7 @@ namespace API.Scrapping.Controllers
             match.RoundNr = Convert.ToInt32(matchRound.Substring(matchRound.IndexOf("Round") + 6));
 
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
-            try
-            {
-                match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '-'), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
-            }
-            catch
-            {
-                //match.Date = matchHeaderData[0];
-            }
+            match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '-'), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
 
             //match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
 
@@ -159,11 +154,16 @@ namespace API.Scrapping.Controllers
 
             #region stats per half
 
-            match.Stats0 = await match.PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
+            var statsArr = await match.PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
+            match.THome.Stats0 = statsArr[0];
+            match.TGuest.Stats0 = statsArr[1];
 
-            match.Stats1 = await match.PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
-
-            match.Stats2 = await match.PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
+            statsArr = await match.PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
+            match.THome.Stats1 = statsArr[0];
+            match.TGuest.Stats1 = statsArr[1];
+            statsArr = await match.PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
+            match.THome.Stats2 = statsArr[0];
+            match.TGuest.Stats2 = statsArr[1];
             #endregion
             await page2.CloseAsync();
             await page2.DisposeAsync();

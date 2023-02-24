@@ -1,30 +1,27 @@
+using API.Scrapping.Core;
 using PuppeteerSharp;
 using System.Text.RegularExpressions;
 using Web.Domain.Extentions;
 
 namespace Web.Domain.Entities
 {
-    public class Team : BaseEntity
+    public class Team : TeamBase
     {
-        public Team()
-        {
-
-        }
-        public Team(string id, string name)
-        {
-            Id = id;
-            Name = name;
-        }
-        public string Name { get; set; }
         public int GoalsPerFirst { get; set; }
-        public int GoalsPerSecond{ get; set; }
+        public int GoalsPerSecond { get; set; }
+        public Stats Stats0 { get; set; }
+        public Stats Stats1 { get; set; }
+        public Stats Stats2 { get; set; }
 
         public async Task<Team> ConfigTeam(IElementHandle element)
         {
             var participantHomeId = (await element.GetPropertyAsync("href")).Convert().Split('/');
-            var team = new Team(participantHomeId[5], participantHomeId[4]);
-            return team;
-        }
 
+            return new Team
+            {
+                Id = participantHomeId[5],
+                Name = participantHomeId[4]
+            };
+        }
     }
 }

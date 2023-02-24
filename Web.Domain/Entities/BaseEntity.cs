@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Web.Domain.Entities
 {
-    public class BaseEntity
+    public abstract class BaseEntity
     {
         [BsonId]
         //[BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
-        public string Id { get; set; }
+        public virtual string Id { get; set; }
     }
 }

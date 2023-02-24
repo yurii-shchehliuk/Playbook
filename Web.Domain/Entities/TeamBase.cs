@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Web.Domain.IEntities
+namespace Web.Domain.Entities
 {
-    public interface IFlashscore
+    public class TeamBase: BaseEntity
     {
-       List<string> Summary { get; set; }
-
+        public string Name { get; set; }
     }
 }
