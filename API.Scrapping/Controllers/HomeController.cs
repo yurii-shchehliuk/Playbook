@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Text;
 using Web.Domain.Entities;
 using Web.Domain.Extentions;
+using Web.Domain.IServices;
 
 namespace API.Scrapping.Controllers
 {
@@ -18,12 +19,15 @@ namespace API.Scrapping.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private Consts consts;
-        private readonly MongoService<Match> _mongoService;
+        private readonly MongoService<Match> _matchService;
+        private readonly MongoService<TeamBase> _teamService;
 
-        public HomeController(ILogger<HomeController> logger, MongoService<Match> mongoService)
+        public HomeController(ILogger<HomeController> logger, MongoService<Match> matchService, MongoService<TeamBase> teamService)
         {
             _logger = logger;
-            _mongoService = mongoService;
+            _matchService = matchService;
+            teamService.SetCollection("Teams");
+            _teamService = teamService;
             consts = new Consts();
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
         }
@@ -42,7 +46,7 @@ namespace API.Scrapping.Controllers
 
                 try
                 {
-                    if (await _mongoService.GetAsync(matchId) != null)
+                    if (await _matchService.GetAsync(matchId) != null)
                     {
                         _logger.LogWarning(string.Format("Match with id: {0} already exists in database", matchId));
                         continue;
@@ -59,7 +63,7 @@ namespace API.Scrapping.Controllers
                     var match = await ParseMatchPage(elem);
 
                     matchesResults.Add(match);
-                    await _mongoService.CreateAsync(match);
+                    await _matchService.CreateAsync(match);
                     _logger.LogInformation(string.Format("[{0}] Match added: {1}", DateTime.Now, match.Title));
                 }
                 catch (Exception ex)
@@ -77,7 +81,7 @@ namespace API.Scrapping.Controllers
         [HttpGet("GetMatches")]
         public async Task<ActionResult<IEnumerable<Match>>> GetMatches()
         {
-            return await _mongoService.GetAsync();
+            return await _matchService.GetAsync();
         }
 
         /// <summary>
@@ -97,7 +101,7 @@ namespace API.Scrapping.Controllers
             while (await page.QuerySelectorAsync("a.event__more") != null)
             {
                 await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
-                await Task.Delay(consts.OpenPageDelay);
+                await Task.Delay(consts.WaitForLoad);
             }
             //parse all by calss
             var results = await page.QuerySelectorAllAsync("div.event__match");
@@ -128,13 +132,23 @@ namespace API.Scrapping.Controllers
             match.TGuest = await new Team().ConfigTeam(participants.LastOrDefault());
 
             // add to teams-collection
+            if (await _teamService.GetAsync(match.THome.Id) == null)
+            {
+                await _teamService.CreateAsync(match.THome.GetInstance());
+                _logger.LogInformation(string.Format("Added team: {0}", match.THome.Name));
+            }
+            if (await _teamService.GetAsync(match.TGuest.Id) == null)
+            {
+                await _teamService.CreateAsync(match.TGuest.GetInstance());
+                _logger.LogInformation(string.Format("Added team: {0}", match.TGuest.Name));
+            }
 
-            var matchIncidentsFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
-            match.THome.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[0]);
-            match.TGuest.GoalsPerFirst = Convert.ToInt32(matchIncidentsFirst[1]);
-            var matchIncidentsSecond = (await match.PopulateData("div.smv__incidentsHeader", page2)).LastOrDefault().Split(',').LastOrDefault().Split('-');
-            match.THome.GoalsPerSecond = Convert.ToInt32(matchIncidentsSecond[0]);
-            match.TGuest.GoalsPerSecond = Convert.ToInt32(matchIncidentsSecond[1]);
+            var goalsPerFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
+            match.THome.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[0]);
+            match.TGuest.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[1]);
+            var goalsPerSecond = (await match.PopulateData("div.smv__incidentsHeader", page2)).LastOrDefault().Split(',').LastOrDefault().Split('-');
+            match.THome.GoalsPerSecond = Convert.ToInt32(goalsPerSecond[0]);
+            match.TGuest.GoalsPerSecond = Convert.ToInt32(goalsPerSecond[1]);
             #endregion
 
 

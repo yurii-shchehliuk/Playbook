@@ -7,21 +7,31 @@ namespace API.Scrapping.Services
 {
     public class MongoService<T> : IMongoService<T> where T : BaseEntity
     {
-        private readonly IMongoCollection<T> _mongoCollection;
+        private readonly IMongoDatabase _db;
+        private IMongoCollection<T> _mongoCollection;
 
         public MongoService(
             IOptions<MongoSettings> itemStoreDatabaseSettings)
         {
-            var mongoClient = new MongoClient(
+            var client = new MongoClient(
                 itemStoreDatabaseSettings.Value.ConnectionString);
 
-            var mongoDatabase = mongoClient.GetDatabase(
+            _db = client.GetDatabase(
                 itemStoreDatabaseSettings.Value.DatabaseName);
 
-            _mongoCollection = mongoDatabase.GetCollection<T>(
+            _mongoCollection = _db.GetCollection<T>(
                 itemStoreDatabaseSettings.Value.PlaybookCollectionName);
         }
 
+        public IMongoCollection<T> GetCollection<T>(string collection)
+        {
+            return _db.GetCollection<T>(collection);
+        }
+
+        public void SetCollection(string collection)
+        {
+            _mongoCollection = _db.GetCollection<T>(collection);
+        }
 
         public async Task<List<T>> GetAsync() =>
             await _mongoCollection.Find(_ => true).ToListAsync();
