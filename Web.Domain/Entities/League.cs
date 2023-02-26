@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Web.Domain.Entities
 {
-    public class Legue : BaseEntity
+    public class League : BaseEntity
     {
         [BsonElement("name")]
         public string Name { get; set; }

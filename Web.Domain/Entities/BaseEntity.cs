@@ -1,9 +1,11 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Web.Domain.Entities
@@ -12,6 +14,7 @@ namespace Web.Domain.Entities
     {
         [BsonId]
         //[BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        [JsonProperty(PropertyName = "_id")]
         public virtual string Id { get; set; }
     }
 

@@ -1,14 +1,13 @@
 ﻿using API.Scrapping.Core;
 using API.Scrapping.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
-using Microsoft.Extensions.Options;
 using PuppeteerSharp;
-using System.Data;
 using System.Globalization;
 using System.Text;
 using Web.Domain.Entities;
 using Web.Domain.Extentions;
+using System.Reflection;
+using Newtonsoft.Json;
 
 namespace API.Scrapping.Controllers
 {
@@ -20,12 +19,12 @@ namespace API.Scrapping.Controllers
         private Consts consts;
         private readonly MongoService<Match> _matchService;
         private readonly MongoService<TeamBase> _teamService;
-        private readonly MongoService<Legue> _leagueService;
+        private readonly MongoService<League> _leagueService;
 
         public HomeController(ILogger<HomeController> logger,
                               MongoService<Match> matchService,
                               MongoService<TeamBase> teamService,
-                              MongoService<Legue> leagueService)
+                              MongoService<League> leagueService)
         {
             _logger = logger;
             _matchService = matchService;
@@ -102,8 +101,20 @@ namespace API.Scrapping.Controllers
             Console.WriteLine(string.Format("Found {0} legues", leguesList.Count));
             for (int i = 0; i < leguesList.Count; i++)
             {
-                Legue? legue = leguesList[i];
+                League? legue = leguesList[i];
                 Console.WriteLine(string.Format("[{0}] {1}", i, legue.Name));
+            }
+
+            if (leguesList.Count < 1)
+            {
+                var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var leaguesJson = System.IO.File.ReadAllText(path +"/Data/leagues2.json");
+
+                var leaguesArr = JsonConvert.DeserializeObject<List<League>>(leaguesJson);
+                foreach (var item in leaguesArr)
+                {
+                    await _leagueService.CreateAsync(item);
+                }
             }
             Console.WriteLine("Select legue to parse: ");
             int urlNumber = 0;
