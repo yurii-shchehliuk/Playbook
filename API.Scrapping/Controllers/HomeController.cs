@@ -117,7 +117,7 @@ namespace API.Scrapping.Controllers
                 }
             }
 
-            Console.WriteLine("Select legue to parse (press enter to parse the latest): ");
+            Console.WriteLine("Select legue to parse: ");
             int urlNumber = 0;
             try
             {
@@ -134,7 +134,7 @@ namespace API.Scrapping.Controllers
                 return await LoadMatches();
             }
             var URL = leguesList[urlNumber].FlashscoreLink;
-            Console.WriteLine("Provide season year: ");
+            Console.WriteLine("Provide season year (press enter to parse the latest): ");
             var year = Console.ReadLine();
             if (URL.Contains("results") && !string.IsNullOrEmpty(year))
             {
