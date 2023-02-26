@@ -116,7 +116,8 @@ namespace API.Scrapping.Controllers
                     await _leagueService.CreateAsync(item);
                 }
             }
-            Console.WriteLine("Select legue to parse: ");
+
+            Console.WriteLine("Select legue to parse (press enter to parse the latest): ");
             int urlNumber = 0;
             try
             {
