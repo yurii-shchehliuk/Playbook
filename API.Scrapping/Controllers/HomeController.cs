@@ -110,9 +110,10 @@ namespace API.Scrapping.Controllers
             try
             {
                 urlNumber = Convert.ToInt32(Console.ReadLine());
-                if (urlNumber > leguesList.Count)
+                if (urlNumber >= leguesList.Count)
                 {
-                    throw new ArgumentOutOfRangeException();
+                    _logger.LogError("Wrong input parameter on legue selecting");
+                    await LoadMatches();
                 }
             }
             catch (Exception)
