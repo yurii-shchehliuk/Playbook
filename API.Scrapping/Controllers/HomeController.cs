@@ -75,6 +75,7 @@ namespace API.Scrapping.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
+                    settings.Dispose();
                     throw;
                 }
             }
@@ -192,8 +193,7 @@ namespace API.Scrapping.Controllers
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '-'), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
 
-            //match.Result = matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4];
-
+            match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
             match.Summary = await match.PopulateData("div.smv__participantRow", page2);
 
             #endregion

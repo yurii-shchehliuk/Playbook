@@ -19,7 +19,7 @@ namespace API.Scrapping.Core
         {
             get
             {
-                var url = URL.Remove(0, 36).Replace('/', '_');
+                var url = URL.Remove(0, 36).Replace('/', '_').Replace('-', '_');
                 if (url.EndsWith('_'))
                 {
                     url = url.TrimEnd('_');
