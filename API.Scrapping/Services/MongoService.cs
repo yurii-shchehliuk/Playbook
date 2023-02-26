@@ -23,11 +23,6 @@ namespace API.Scrapping.Services
                 itemStoreDatabaseSettings.Value.PlaybookCollectionName);
         }
 
-        public IMongoCollection<T> GetCollection<T>(string collection)
-        {
-            return _db.GetCollection<T>(collection);
-        }
-
         public void SetCollection(string collection)
         {
             _mongoCollection = _db.GetCollection<T>(collection);

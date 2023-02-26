@@ -9,7 +9,6 @@ using System.Globalization;
 using System.Text;
 using Web.Domain.Entities;
 using Web.Domain.Extentions;
-using Web.Domain.IServices;
 
 namespace API.Scrapping.Controllers
 {
@@ -21,15 +20,22 @@ namespace API.Scrapping.Controllers
         private Consts consts;
         private readonly MongoService<Match> _matchService;
         private readonly MongoService<TeamBase> _teamService;
+        private readonly MongoService<Legue> _leagueService;
 
-        public HomeController(ILogger<HomeController> logger, MongoService<Match> matchService, MongoService<TeamBase> teamService)
+        public HomeController(ILogger<HomeController> logger,
+                              MongoService<Match> matchService,
+                              MongoService<TeamBase> teamService,
+                              MongoService<Legue> leagueService)
         {
             _logger = logger;
             _matchService = matchService;
-            teamService.SetCollection("Teams");
             _teamService = teamService;
+            _leagueService = leagueService;
             consts = new Consts();
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
+
+            _teamService.SetCollection(consts.TeamsCollection);
+            _leagueService.SetCollection(consts.LeaguesCollection);
         }
 
 
@@ -91,8 +97,32 @@ namespace API.Scrapping.Controllers
         /// <todo>check xPath to get all the child of the parent table</todo>
         private async Task<IElementHandle[]> LoadMatches()
         {
+            var leguesList = await _leagueService.GetAsync();
+            Console.WriteLine(string.Format("Found {0} legues", leguesList.Count));
+            for (int i = 0; i < leguesList.Count; i++)
+            {
+                Legue? legue = leguesList[i];
+                Console.WriteLine(string.Format("[{0}] {1}", i, legue.Name));
+            }
+            Console.WriteLine("Select legue to parse: ");
+            int urlNumber = 0;
+            try
+            {
+                urlNumber = Convert.ToInt32(Console.ReadLine());
+                if (urlNumber > leguesList.Count)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch (Exception)
+            {
+                _logger.LogError("Wrong input parameter on legue selecting");
+                await LoadMatches();
+            }
+            consts.URL = leguesList[urlNumber].FlashscoreLink;
             _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
-            _logger.LogInformation(string.Format("Collection name: {0}", consts.CollectionName));
+            _logger.LogInformation(string.Format("Collection name: {0}", consts.GetFileName));
+            _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
 
             var page = BrowserSettings.page;
             await page.GoToAsync(consts.URL);
