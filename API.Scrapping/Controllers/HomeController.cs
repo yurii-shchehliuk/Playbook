@@ -120,7 +120,20 @@ namespace API.Scrapping.Controllers
                 _logger.LogError("Wrong input parameter on legue selecting");
                 await LoadMatches();
             }
-            consts.URL = leguesList[urlNumber].FlashscoreLink;
+            var URL = leguesList[urlNumber].FlashscoreLink;
+            if (!URL.Contains("results"))
+            {
+                _logger.LogWarning("Url is not pointing to the results \nIt may cause incorrect data parsing \nTrying to add manually");
+                if (URL.EndsWith('/'))
+                {
+                    URL += "results";
+                }
+                else
+                {
+                    URL += "/results";
+                }
+                consts.URL = URL;
+            }
             Console.WriteLine(string.Format("URL: {0}", consts.URL));
             _logger.LogInformation(string.Format("Collection name: {0}", consts.GetFileName));
             _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
@@ -168,12 +181,12 @@ namespace API.Scrapping.Controllers
             if (await _teamService.GetAsync(match.THome.Id) == null)
             {
                 await _teamService.CreateAsync(match.THome.GetInstance());
-                _logger.LogInformation(string.Format("Added team: {0}", match.THome.Name));
+                Console.WriteLine(string.Format("Added team: {0}", match.THome.Name));
             }
             if (await _teamService.GetAsync(match.TGuest.Id) == null)
             {
                 await _teamService.CreateAsync(match.TGuest.GetInstance());
-                _logger.LogInformation(string.Format("Added team: {0}", match.TGuest.Name));
+                Console.WriteLine(string.Format("Added team: {0}", match.TGuest.Name));
             }
 
             var goalsPerFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
