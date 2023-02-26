@@ -120,9 +120,11 @@ namespace API.Scrapping.Controllers
                 await LoadMatches();
             }
             consts.URL = leguesList[urlNumber].FlashscoreLink;
-            _logger.LogInformation(string.Format("URL: {0}", consts.GetFileName));
+            Console.WriteLine(string.Format("URL: {0}", consts.URL));
             _logger.LogInformation(string.Format("Collection name: {0}", consts.GetFileName));
             _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
+
+            _matchService.SetCollection(consts.GetFileName);
 
             var page = BrowserSettings.page;
             await page.GoToAsync(consts.URL);

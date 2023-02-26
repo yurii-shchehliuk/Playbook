@@ -18,9 +18,6 @@ namespace API.Scrapping.Services
 
             _db = client.GetDatabase(
                 itemStoreDatabaseSettings.Value.DatabaseName);
-
-            _mongoCollection = _db.GetCollection<T>(
-                itemStoreDatabaseSettings.Value.PlaybookCollectionName);
         }
 
         public void SetCollection(string collection)

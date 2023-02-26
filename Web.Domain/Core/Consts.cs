@@ -13,9 +13,20 @@ namespace API.Scrapping.Core
         public int WaitForLoad = Convert.ToInt32(_conf["WaitForLoad"]);
         public string CollectionName = _conf["PlaybookDatabase:PlaybookCollectionName"];
         public string TeamsCollection = "Teams";
-        public string LeaguesCollection = "leagues2";
+        public string LeaguesCollection = _conf["PlaybookDatabase:LeaguesCollection"];
 
-        public string GetFileName { get { return URL.Remove(0, 36).Replace('/', '_'); } }
+        public string GetFileName
+        {
+            get
+            {
+                var url = URL.Remove(0, 36).Replace('/', '_');
+                if (url.EndsWith('_'))
+                {
+                    url = url.TrimEnd('_');
+                }
+                return url;
+            }
+        }
         public string GetDirectory { get { return string.Format("..{0}", URL.Remove(0, 36).Replace('/', '\\')); } }
     }
 }
