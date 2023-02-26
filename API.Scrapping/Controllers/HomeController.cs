@@ -113,13 +113,13 @@ namespace API.Scrapping.Controllers
                 if (urlNumber >= leguesList.Count)
                 {
                     _logger.LogError("Wrong input parameter on legue selecting");
-                    await LoadMatches();
+                    return await LoadMatches();
                 }
             }
             catch (Exception)
             {
                 _logger.LogError("Wrong input parameter on legue selecting");
-                await LoadMatches();
+                return await LoadMatches();
             }
             var URL = leguesList[urlNumber].FlashscoreLink;
             if (!URL.Contains("results"))
