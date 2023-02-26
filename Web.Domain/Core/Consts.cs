@@ -22,6 +22,8 @@ namespace API.Scrapping.Core
                 {
                     url = url.TrimEnd('_');
                 }
+                //remove country name
+                url = url.Substring(url.IndexOf("_"));
                 return url;
             }
         }

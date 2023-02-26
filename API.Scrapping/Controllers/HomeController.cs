@@ -122,9 +122,21 @@ namespace API.Scrapping.Controllers
                 return await LoadMatches();
             }
             var URL = leguesList[urlNumber].FlashscoreLink;
-            if (!URL.Contains("results"))
+            Console.WriteLine("Provide season year: ");
+            var year = Console.ReadLine();
+            if (URL.Contains("results") && !string.IsNullOrEmpty(year))
             {
-                _logger.LogWarning("Url is not pointing to the results \nIt may cause incorrect data parsing \nTrying to add manually");
+                URL = URL.Replace("/results", "");
+                URL += "-" + year;
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(year))
+                {
+                    URL = URL.Substring(0, URL.LastIndexOf('/'));
+                    URL += "-" + year;
+                }
+                //_logger.LogWarning("Url is not pointing to the results \nIt may cause incorrect data parsing \nTrying to add manually");
                 if (URL.EndsWith('/'))
                 {
                     URL += "results";
@@ -135,11 +147,12 @@ namespace API.Scrapping.Controllers
                 }
                 consts.URL = URL;
             }
+            var FileName = leguesList[urlNumber].Country.Code + consts.GetFileName;
             Console.WriteLine(string.Format("URL: {0}", consts.URL));
-            _logger.LogInformation(string.Format("Collection name: {0}", consts.GetFileName));
+            _logger.LogInformation(string.Format("Collection name: {0}", FileName));
             _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
 
-            _matchService.SetCollection(consts.GetFileName);
+            _matchService.SetCollection(FileName);
 
             var page = BrowserSettings.page;
             await page.GoToAsync(consts.URL);
