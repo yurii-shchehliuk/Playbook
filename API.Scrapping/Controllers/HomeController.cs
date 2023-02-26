@@ -171,7 +171,7 @@ namespace API.Scrapping.Controllers
             var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
             var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
             match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
-            var matchIncidents2 = (await match.PopulateData("div.smv__incidentsHeader", page2));
+            _logger.LogInformation(string.Format("Parsing {0}", match.Title));
 
             var participants = await page2.QuerySelectorAllAsync("a.participant__participantLink");
             match.THome = await new Team().ConfigTeam(participants.FirstOrDefault());
@@ -203,7 +203,6 @@ namespace API.Scrapping.Controllers
             var matchRound = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
             match.RoundNr = Convert.ToInt32(matchRound.Substring(matchRound.IndexOf("Round") + 6));
 
-            _logger.LogInformation(string.Format("Parsing {0}", match.Title));
             match.Date = DateTime.ParseExact(matchHeaderData[0].Replace('.', '-'), "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
 
             match.Summary.Add(matchHeaderData[2] + matchHeaderData[3] + matchHeaderData[4]);
