@@ -11,6 +11,7 @@ namespace API.Scrapping.Core
         public int OpenPageDelay = Convert.ToInt32(_conf["OpenPageDelay"]);
         public int WaitForLoad = Convert.ToInt32(_conf["WaitForLoad"]);
         public string LeaguesCollection = _conf["PlaybookDatabase:LeaguesCollection"];
+        public string YearToParse = _conf["YearToParse"];
         public string TeamsCollection = "Teams";
 
         public string GetFileName

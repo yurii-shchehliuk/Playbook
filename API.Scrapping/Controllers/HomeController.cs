@@ -13,13 +13,14 @@ namespace API.Scrapping.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class HomeController : ControllerBase, IDisposable
+    public class HomeController : ControllerBase
     {
         private readonly ILogger<HomeController> _logger;
         private Consts consts;
         private readonly MongoService<Match> _matchService;
         private readonly MongoService<TeamBase> _teamService;
         private readonly MongoService<League> _leagueService;
+        private int attempts = 0;
 
         public HomeController(ILogger<HomeController> logger,
                               MongoService<Match> matchService,
@@ -44,39 +45,56 @@ namespace API.Scrapping.Controllers
             using var settings = await BrowserSettings.Init(consts);
 
             var matchesResults = new List<Match>();
+            var leaguesToParse = await ShowLeagues();
 
-            foreach (var elem in await LoadMatches())
+            foreach (var league in leaguesToParse)
             {
-                var matchId = (await elem.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
+                var leagueName = await GetCollectionName(Convert.ToInt32(league));
+                var matchesPerLeague = await LoadMatches(leagueName);
 
-                try
+                foreach (var currentMatch in matchesPerLeague)
                 {
-                    if (await _matchService.GetAsync(matchId) != null)
+                    var matchId = (await currentMatch.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
+
+                    try
                     {
-                        _logger.LogWarning(string.Format("Match with id: {0} already exists in database", matchId));
-                        continue;
+                        if (await _matchService.GetAsync(matchId) != null)
+                        {
+                            _logger.LogWarning(string.Format("Match with id: {0} already exists in database", matchId));
+                            continue;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(string.Format("Mongo service couldn't start, use 'net start MongoDB' to run \n {0} \n {1}", ex.Message, ex.InnerException));
+                        throw;
+                    }
+
+                    try
+                    {
+                        var match = await ParseMatchPage(currentMatch);
+
+                        matchesResults.Add(match);
+                        await _matchService.CreateAsync(match);
+                        Console.WriteLine(string.Format("[{0}] Match added: {1}, {2}", DateTime.Now, match.Title, leagueName));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
+                        attempts++;
+                        await Task.Delay(consts.WaitForLoad * 3);
+                    }
+                    finally
+                    {
+                        if (attempts >= 5)
+                        {
+                            settings.Dispose();
+                            _logger.LogError(string.Format("Exiting, too many attempts"));
+                            Environment.Exit(1);
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(string.Format("Mongo service couldn't start, use 'net start MongoDB' to run \n {0} \n {1}", ex.Message, ex.InnerException));
-                    throw;
-                }
-
-                try
-                {
-                    var match = await ParseMatchPage(elem);
-
-                    matchesResults.Add(match);
-                    await _matchService.CreateAsync(match);
-                    _logger.LogInformation(string.Format("[{0}] Match added: {1}", DateTime.Now, match.Title));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
-                    settings.Dispose();
-                    throw;
-                }
+                _logger.LogInformation(string.Format("\n[{0}] League Parsing finished {1}", DateTime.Now, leagueName));
             }
 
             _logger.LogInformation(string.Format("\n[{0}] Parsing finished", DateTime.Now));
@@ -84,58 +102,84 @@ namespace API.Scrapping.Controllers
             return Ok();
         }
 
-        [HttpGet("GetMatches")]
-        public async Task<ActionResult<IEnumerable<Match>>> GetMatches()
-        {
-            return await _matchService.GetAsync();
-        }
 
         /// <summary>
         /// simulate click to load all
         /// </summary>
         /// <returns></returns>
         /// <todo>check xPath to get all the child of the parent table</todo>
-        private async Task<IElementHandle[]> LoadMatches()
+        private async Task<IElementHandle[]> LoadMatches(string collName)
+        {
+            Console.WriteLine(string.Format("URL: {0}", consts.URL));
+            _logger.LogInformation(string.Format("Collection name: {0}", collName));
+            _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
+
+            _matchService.SetCollection(collName);
+
+            var page = BrowserSettings.page;
+            await page.GoToAsync(consts.URL);
+
+            //load all
+            while (await page.QuerySelectorAsync("a.event__more") != null)
+            {
+                await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
+                await Task.Delay(consts.WaitForLoad);
+            }
+            //parse all by calss
+            var results = await page.QuerySelectorAllAsync("div.event__match");
+            _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
+
+            return results;
+        }
+
+        private async Task<string[]> ShowLeagues()
         {
             var leguesList = await _leagueService.GetAsync();
             Console.WriteLine(string.Format("Found {0} legues", leguesList.Count));
-            for (int i = 0; i < leguesList.Count; i++)
-            {
-                League? legue = leguesList[i];
-                Console.WriteLine(string.Format("[{0}] {1}", i, legue.Name));
-            }
-
             if (leguesList.Count < 1)
             {
                 var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var leaguesJson = System.IO.File.ReadAllText(path +"/Data/leagues2.json");
+                var leaguesJson = System.IO.File.ReadAllText(path + "/Data/leagues2.json");
 
                 var leaguesArr = JsonConvert.DeserializeObject<List<League>>(leaguesJson);
                 foreach (var item in leaguesArr)
                 {
                     await _leagueService.CreateAsync(item);
                 }
+                return await ShowLeagues();
             }
 
-            Console.WriteLine("Select legue to parse: ");
-            int urlNumber = 0;
+            for (int i = 0; i < leguesList.Count; i++)
+            {
+                League? legue = leguesList[i];
+                Console.WriteLine(string.Format("[{0}] {1}", i, legue.Name));
+            }
+
+            Console.WriteLine("Select legue to parse (press enter to parse all or provide by ,): ");
             try
             {
-                urlNumber = Convert.ToInt32(Console.ReadLine());
-                if (urlNumber >= leguesList.Count)
+                var input = Console.ReadLine();
+                if (string.IsNullOrEmpty(input.Trim()))
                 {
-                    _logger.LogError("Wrong input parameter on legue selecting");
-                    return await LoadMatches();
+                    return new string[leguesList.Count - 1];
                 }
+                return input.Split(',');
+
             }
             catch (Exception)
             {
                 _logger.LogError("Wrong input parameter on legue selecting");
-                return await LoadMatches();
+                return await ShowLeagues();
             }
+        }
+
+        private async Task<string> GetCollectionName(int urlNumber)
+        {
+            var leguesList = await _leagueService.GetAsync();
+
             var URL = leguesList[urlNumber].FlashscoreLink;
             Console.WriteLine("Provide season year (press enter to parse the latest): ");
-            var year = Console.ReadLine();
+            var year = consts.YearToParse;
             if (URL.Contains("results") && !string.IsNullOrEmpty(year))
             {
                 URL = URL.Replace("/results", "");
@@ -159,27 +203,8 @@ namespace API.Scrapping.Controllers
                 }
                 consts.URL = URL;
             }
-            var FileName = leguesList[urlNumber].Country.Code + consts.GetFileName;
-            Console.WriteLine(string.Format("URL: {0}", consts.URL));
-            _logger.LogInformation(string.Format("Collection name: {0}", FileName));
-            _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
+            return leguesList[urlNumber].Country.Code + consts.GetFileName;
 
-            _matchService.SetCollection(FileName);
-
-            var page = BrowserSettings.page;
-            await page.GoToAsync(consts.URL);
-
-            //load all
-            while (await page.QuerySelectorAsync("a.event__more") != null)
-            {
-                await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
-                await Task.Delay(consts.WaitForLoad);
-            }
-            //parse all by calss
-            var results = await page.QuerySelectorAllAsync("div.event__match");
-            _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
-
-            return results;
         }
 
         private async Task<Match> ParseMatchPage(IElementHandle elem)
@@ -252,50 +277,6 @@ namespace API.Scrapping.Controllers
             await page2.CloseAsync();
             await page2.DisposeAsync();
             return match;
-        }
-
-
-
-        private async Task<IPage> MontecarloSimulation()
-        {
-            return null;
-        }
-
-        public void Dispose()
-        {
-        }
-    }
-    internal sealed class BrowserSettings : IDisposable
-    {
-        public static IBrowser browser;
-        public static IPage page;
-
-        private static BrowserSettings _instance;
-
-        public static async Task<BrowserSettings> Init(Consts consts)
-        {
-            if (_instance != null)
-                return _instance;
-
-            _instance = new BrowserSettings();
-            var options = new LaunchOptions()
-            {
-                Headless = false,
-                ExecutablePath = consts.BrowserPath,
-                Product = Product.Chrome
-            };
-
-            browser = await Puppeteer.LaunchAsync(options);
-            page = await browser.NewPageAsync();
-
-            return _instance;
-        }
-
-        public void Dispose()
-        {
-            page.CloseAsync();
-            browser.CloseAsync();
-            browser.Dispose();
         }
     }
 }
