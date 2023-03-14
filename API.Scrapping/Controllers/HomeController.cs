@@ -52,15 +52,16 @@ namespace API.Scrapping.Controllers
                 var leagueName = await GetCollectionName(Convert.ToInt32(league));
                 var matchesPerLeague = await LoadMatches(leagueName);
 
-                foreach (var currentMatch in matchesPerLeague)
+                for (int matchIndex = 0; matchIndex < matchesPerLeague.Length; matchIndex++)
                 {
+                    IElementHandle? currentMatch = matchesPerLeague[matchIndex];
                     var matchId = (await currentMatch.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
                     try
                     {
                         if (await _matchService.GetAsync(matchId) != null)
                         {
-                            _logger.LogWarning(string.Format("Match with id: {0} already exists in database", matchId));
+                            _logger.LogWarning(string.Format("Match with id: {0} already exists in database {1} [{2}/{3}]", matchId, leagueName, matchIndex + 1, matchesPerLeague.Length));
                             continue;
                         }
                     }
@@ -76,7 +77,7 @@ namespace API.Scrapping.Controllers
 
                         matchesResults.Add(match);
                         await _matchService.CreateAsync(match);
-                        Console.WriteLine(string.Format("[{0}] Match added: {1}, {2}", DateTime.Now, match.Title, leagueName));
+                        Console.WriteLine(string.Format("[{0}] Match added: {1}, {2} [{3}/{4}]", DateTime.Now, match.Title, leagueName, matchIndex + 1, matchesPerLeague.Length));
                     }
                     catch (Exception ex)
                     {
