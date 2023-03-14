@@ -161,7 +161,12 @@ namespace API.Scrapping.Controllers
                 var input = Console.ReadLine();
                 if (string.IsNullOrEmpty(input.Trim()))
                 {
-                    return new string[leguesList.Count - 1];
+                    var arr = new string[leguesList.Count];
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        arr[i] = i.ToString();
+                    }
+                    return arr;
                 }
                 return input.Split(',');
 
