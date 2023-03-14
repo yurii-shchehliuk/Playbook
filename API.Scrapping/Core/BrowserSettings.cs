@@ -17,7 +17,7 @@ namespace API.Scrapping.Core
             _instance = new BrowserSettings();
             var options = new LaunchOptions()
             {
-                Headless = false,
+                Headless = consts.HeadlessBrowser,
                 ExecutablePath = consts.BrowserPath,
                 Product = Product.Chrome
             };

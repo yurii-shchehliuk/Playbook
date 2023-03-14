@@ -12,6 +12,7 @@ namespace API.Scrapping.Core
         public int WaitForLoad = Convert.ToInt32(_conf["WaitForLoad"]);
         public string LeaguesCollection = _conf["PlaybookDatabase:LeaguesCollection"];
         public string YearToParse = _conf["YearToParse"];
+        public bool HeadlessBrowser = Convert.ToBoolean(_conf["HeadlessBrowser"]);
         public string TeamsCollection = "Teams";
 
         public string GetFileName

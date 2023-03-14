@@ -245,7 +245,7 @@ namespace API.Scrapping.Controllers
                 await _teamService.CreateAsync(match.TGuest.GetInstance());
                 Console.WriteLine(string.Format("Added team: {0}", match.TGuest.Name));
             }
-
+            await Task.Delay(consts.OpenPageDelay);
             var goalsPerFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
             match.THome.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[0]);
             match.TGuest.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[1]);
