@@ -74,7 +74,10 @@ namespace API.Scrapping.Controllers
                     try
                     {
                         var match = await ParseMatchPage(currentMatch);
-
+                        if (match == null)
+                        {
+                            continue;
+                        }
                         matchesResults.Add(match);
                         await _matchService.CreateAsync(match);
                         Console.WriteLine(string.Format("[{0}] Match added: {1}, {2} [{3}/{4}]", DateTime.Now, match.Title, leagueName, matchIndex + 1, matchesPerLeague.Length));
@@ -235,7 +238,11 @@ namespace API.Scrapping.Controllers
 
             #region team
             var matchHeader = await page2.QuerySelectorAsync("div.duelParticipant");
-            var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Replace("FINISHED", "").Split(',');
+            var matchHeaderData = (await matchHeader.GetPropertyAsync("outerText")).Convert().Split(',');
+            if (matchHeaderData[5].ToUpper() != "FINISHED")
+            {
+                return null;
+            }
             match.Title = matchHeaderData[1] + " - " + matchHeaderData.LastOrDefault();
             _logger.LogInformation(string.Format("Parsing {0}", match.Title));
 
