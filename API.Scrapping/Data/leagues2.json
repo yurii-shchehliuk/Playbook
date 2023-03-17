@@ -24,18 +24,6 @@
     "whoScoredLink": "https://www.whoscored.com/Regions/14/Tournaments/194/Australia-A-League"
   },
   {
-    "_id": "63f650e0dde220100049cf8e",
-    "name": "Bundesliga",
-    "country": {
-      "name": "austria",
-      "code": "at"
-    },
-    "flashscoreLink": "https://www.flashscore.com/football/austria/bundesliga/",
-    "footystatsLink": "https://footystats.org/austria/bundesliga",
-    "tdslLink": "https://www.thestatsdontlie.com/football/europe/austria/bundesliga/",
-    "whoScoredLink": "https://www.whoscored.com/Regions/15/Tournaments/32/Austria-Bundesliga"
-  },
-  {
     "_id": "63f651bdb50587f7d0551558",
     "name": "Jupiler Pro League",
     "country": {
@@ -46,18 +34,6 @@
     "footystatsLink": "https://footystats.org/belgium/pro-league",
     "tdslLink": "https://www.thestatsdontlie.com/football/europe/belgium/pro-league/",
     "whoScoredLink": "https://www.whoscored.com/Regions/22/Tournaments/18/Belgium-Jupiler-Pro-League"
-  },
-  {
-    "_id": "63f6525dab526b73088761f2",
-    "name": "Superliga",
-    "country": {
-      "name": "denmark",
-      "code": "dk"
-    },
-    "flashscoreLink": "https://www.flashscore.com/football/denmark/superliga/",
-    "footystatsLink": "https://footystats.org/denmark/superliga",
-    "tdslLink": "https://www.thestatsdontlie.com/football/europe/denmark/superliga/",
-    "whoScoredLink": "https://www.whoscored.com/Regions/59/Tournaments/1/Denmark-Superliga"
   },
   {
     "_id": "63f652bd288b9c1b770d7e00",

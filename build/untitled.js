@@ -1,6 +1,9 @@
-var pipeline = [
+[
   {
     $addFields: {
+      lastRoundPlayed: {
+        $max: ["$RoundNr"],
+      },
       firstHalf: {
         $sum: [
           "$THome.GoalsPerFirst",
@@ -21,11 +24,14 @@ var pipeline = [
           "$TGuest.GoalsPerSecond",
         ],
       },
+      attacksTotal: {
+        $sum: "$THome.Stats1.Attacks",
+      },
     },
   },
   {
     $match: {
-      firstHalf: { $gte: 2 },
+      // firstHalf: { $gte: 2 },
       // totalScored: { $gte: 4 },
     },
   },
@@ -33,32 +39,114 @@ var pipeline = [
     // $project: {
     $group: {
       _id: "$THome.Name",
+      // firstHalf: 1,
+      // secondHalf: 1,
+      // totalScored: 1,
       attacksTotal: {
         $sum: "$THome.Stats1.Attacks",
       },
       attacksAvg: {
         $avg: "$THome.Stats1.Attacks",
       },
-      possesionTotal: {
+      dangerousAttacksTotal: {
+        $sum: "$THome.Stats1.DangerousAttacks",
+      },
+      dangerousAttacksAvg: {
+        $avg: "$THome.Stats1.DangerousAttacks",
+      },
+      goalAttemptsTotal: {
+        $sum: "$THome.Stats1.GoalAttempts",
+      },
+      goalAttemptsAvg: {
+        $avg: "$THome.Stats1.GoalAttempts",
+      },
+      shotsOnGoalTotal: {
+        $sum: "$THome.Stats1.ShotsOnGoal",
+      },
+      shotsOnGoalAvg: {
+        $avg: "$THome.Stats1.ShotsOnGoal",
+      },
+      shotsOffGoalTotal: {
+        $sum: "$THome.Stats1.ShotsOffGoal",
+      },
+      shotsOffGoalAvg: {
+        $avg: "$THome.Stats1.ShotsOffGoal",
+      },
+      blockedShotsTotal: {
+        $sum: "$THome.Stats1.BlockedShots",
+      },
+      blockedShotsAvg: {
+        $avg: "$THome.Stats1.BlockedShots",
+      },
+      freeKicksTotal: {
+        $sum: "$THome.Stats1.FreeKicks",
+      },
+      freeKicksAvg: {
+        $avg: "$THome.Stats1.FreeKicks",
+      },
+      cornerKicksTotal: {
+        $sum: "$THome.Stats1.CornerKicks",
+      },
+      cornerKicksAvg: {
+        $avg: "$THome.Stats1.CornerKicks",
+      },
+      offsidesTotal: {
+        $sum: "$THome.Stats1.Offsides",
+      },
+      offsidesAvg: {
+        $avg: "$THome.Stats1.Offsides",
+      },
+      throwInTotal: {
+        $sum: "$THome.Stats1.ThrowIn",
+      },
+      throwInAvg: {
+        $avg: "$THome.Stats1.ThrowIn",
+      },
+      foulsTotal: {
+        $sum: "$THome.Stats1.Fouls",
+      },
+      foulsAvg: {
+        $avg: "$THome.Stats1.Fouls",
+      },
+      completedPassesTotal: {
+        $sum: "$THome.Stats1.CompletedPasses",
+      },
+      completedPassesAvg: {
+        $avg: "$THome.Stats1.CompletedPasses",
+      },
+      totalPassesTotal: {
+        $sum: "$THome.Stats1.TotalPasses",
+      },
+      totalPassesAvg: {
+        $avg: "$THome.Stats1.TotalPasses",
+      },
+      ballPossessionTotal: {
         $sum: "$THome.Stats1.BallPossession",
       },
-      possesionAvg: {
+      ballPossessionAvg: {
         $avg: "$THome.Stats1.BallPossession",
       },
-      goalsPerFirstTotal: {
+      yellowCardsTotal: {
+        $sum: "$THome.Stats1.YellowCards",
+      },
+      yellowCardsAvg: {
+        $avg: "$THome.Stats1.YellowCards",
+      },
+      expectedGoalsTotal: {
+        $sum: "$THome.Stats1.ExpectedGoals",
+      },
+      expectedGoalsAvg: {
+        $avg: "$THome.Stats1.ExpectedGoals",
+      },
+      goalsFirstHalfTotal: {
         $sum: "$THome.GoalsPerFirst",
       },
-      goalsPerFirstAvg: {
+      goalsFirstHalfAvg: {
         $avg: "$THome.GoalsPerFirst",
       },
-      // firstHalf: 1,
-      // secondHalf: 1,
-      // totalScored: 1,
     },
   },
   {
-    $sort: { attacksTotal: -1 },
+    $sort: { goalsFirstHalfTotal: -1 },
   },
 ]
-
-db.at_bundesliga.aggregate(pipeline)
