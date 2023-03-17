@@ -1,7 +1,10 @@
-﻿namespace Web.Domain.Entities
+﻿using Newtonsoft.Json;
+
+namespace Web.Domain.Entities
 {
     public class Stats
     {
+        [JsonProperty("ExpectedGoals(xG)")]
         public float ExpectedGoals { get; set; } = 0;
         public int BallPossession { get; set; }
         public int GoalAttempts { get; set; }
@@ -11,6 +14,7 @@
         public int FreeKicks { get; set; }
         public int CornerKicks { get; set; }
         public int Offsides { get; set; }
+        [JsonProperty("Throw-in")]
         public int ThrowIn { get; set; }
         public int GoalkeeperSaves { get; set; }
         public int Fouls { get; set; }

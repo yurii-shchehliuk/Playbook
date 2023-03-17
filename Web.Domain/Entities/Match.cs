@@ -47,7 +47,7 @@ namespace Web.Domain.Entities
             foreach (var item in matchData)
             {
                 var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
-                var rowSplit = matchContent.Replace("%", "").Replace("(xG)", "").Split(',');
+                var rowSplit = matchContent.Replace("%", "").Split(',');
                 var colName = rowSplit[1].Replace(" ", "");
 
                 homeData.Add(colName, rowSplit[0]);

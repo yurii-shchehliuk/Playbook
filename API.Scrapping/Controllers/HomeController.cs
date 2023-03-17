@@ -186,7 +186,7 @@ namespace API.Scrapping.Controllers
             var URL = leguesList[urlNumber].FlashscoreLink;
             Console.WriteLine("Provide season year (press enter to parse the latest): ");
             var year = consts.YearToParse;
-            if (URL.Contains("results") && !string.IsNullOrEmpty(year))
+            if (URL.Contains("results"))
             {
                 URL = URL.Replace("/results", "");
                 URL += "-" + year;
@@ -209,7 +209,16 @@ namespace API.Scrapping.Controllers
                 }
                 consts.URL = URL;
             }
-            return leguesList[urlNumber].Country.Code + consts.GetFileName;
+            if (string.IsNullOrEmpty(year) && leguesList[urlNumber].Country.Name != "MLS")
+            {
+                year = (DateTime.Now.Year - 1).ToString() + "-" + DateTime.Now.Year.ToString();
+            }
+            else if (leguesList[urlNumber].Country.Name == "MLS")
+            {
+                year = DateTime.Now.Year.ToString();
+
+            }
+            return leguesList[urlNumber].Country.Code + consts.GetFileName + "_" + year;
 
         }
 

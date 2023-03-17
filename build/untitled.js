@@ -1,31 +1,64 @@
 var pipeline = [
-    {
-        $addFields: {
-            homeScored: { $sum: ["$THome.GoalsPerFirst", "$THome.GoalsPerSecond"] },
-            guestScored: { $sum: ["$TGuest.GoalsPerFirst", "$TGuest.GoalsPerSecond"] },
-            totalScored: { $sum: ["$THome.GoalsPerFirst", "$THome.GoalsPerSecond", "$TGuest.GoalsPerFirst", "$TGuest.GoalsPerSecond"] },
-        },
+  {
+    $addFields: {
+      firstHalf: {
+        $sum: [
+          "$THome.GoalsPerFirst",
+          "$TGuest.GoalsPerFirst",
+        ],
+      },
+      secondHalf: {
+        $sum: [
+          "$THome.GoalsPerSecond",
+          "$TGuest.GoalsPerSecond",
+        ],
+      },
+      totalScored: {
+        $sum: [
+          "$THome.GoalsPerFirst",
+          "$THome.GoalsPerSecond",
+          "$TGuest.GoalsPerFirst",
+          "$TGuest.GoalsPerSecond",
+        ],
+      },
     },
-    {
-        $match: {
-            homeScored: { $gte: 2 }
-        }
+  },
+  {
+    $match: {
+      firstHalf: { $gte: 2 },
+      // totalScored: { $gte: 4 },
     },
-    {
-        $project: {
-            _id: "$THome.Name",
-            attacksTotal: { $sum: "$THome.Stats0.Attacks" },
-            possesion: { $sum: "$THome.Stats0.BallPossession" },
-            goalsPerFirstTotal: { $sum: "$THome.GoalsPerFirst" },
-            goalsPerFirstAvg: { $avg: "$THome.GoalsPerFirst" },
-            homeScored: 1,
-            guestScored: 1,
-            totalScored: 1,
-        }
+  },
+  {
+    // $project: {
+    $group: {
+      _id: "$THome.Name",
+      attacksTotal: {
+        $sum: "$THome.Stats1.Attacks",
+      },
+      attacksAvg: {
+        $avg: "$THome.Stats1.Attacks",
+      },
+      possesionTotal: {
+        $sum: "$THome.Stats1.BallPossession",
+      },
+      possesionAvg: {
+        $avg: "$THome.Stats1.BallPossession",
+      },
+      goalsPerFirstTotal: {
+        $sum: "$THome.GoalsPerFirst",
+      },
+      goalsPerFirstAvg: {
+        $avg: "$THome.GoalsPerFirst",
+      },
+      // firstHalf: 1,
+      // secondHalf: 1,
+      // totalScored: 1,
     },
-    {
-        $sort: { attacksTotal: -1 }
-    }
+  },
+  {
+    $sort: { attacksTotal: -1 },
+  },
 ]
 
 db.at_bundesliga.aggregate(pipeline)
