@@ -116,7 +116,7 @@ namespace API.Scrapping.Controllers
         {
             Console.WriteLine(string.Format("URL: {0}", consts.URL));
             _logger.LogInformation(string.Format("Collection name: {0}", collName));
-            _logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
+            //_logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
 
             _matchService.SetCollection(collName);
 
