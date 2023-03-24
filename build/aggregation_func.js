@@ -248,7 +248,7 @@
         ],
       },
       gksaves_shoton_goals: {
-        $divide: [
+        $subtract: [
           "$shotsOnGoalAvg",
           "$goalsFirstHalfAvg",
         ],
@@ -260,10 +260,7 @@
         ],
       },
       passes_attacks: {
-
-
-        $sum: ["$???", "$attacksAvg"],
-
+        $divide: ["$totalPassesAvg", "$attacksAvg"],
       },
       moreshots_moregoals: {
         $divide: [
