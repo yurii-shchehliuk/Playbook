@@ -32,7 +32,7 @@
   {
     $match: {
       // firstHalf: { $gte: 2 },
-      // totalScored: { $gte: 4 },
+      // totalScored: { $gte: 4 },  
     },
   },
   {
