@@ -259,8 +259,11 @@
           "$attacksAvg",
         ],
       },
-      passes_attacks: {
+      passes_attacks1: {
         $divide: ["$totalPassesAvg", "$attacksAvg"],
+      },
+      passes_attacks2: {
+        $divide: ["$completedPassesAvg", "$attacksAvg"],
       },
       moreshots_moregoals: {
         $divide: [
