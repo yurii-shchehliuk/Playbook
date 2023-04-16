@@ -8,6 +8,7 @@ using Web.Domain.Entities;
 using Web.Domain.Extentions;
 using System.Reflection;
 using Newtonsoft.Json;
+using System;
 
 namespace API.Scrapping.Controllers
 {
@@ -270,7 +271,6 @@ namespace API.Scrapping.Controllers
             match.TGuest.GoalsPerSecond = Convert.ToInt32(goalsPerSecond[1]);
             #endregion
 
-
             #region summary
             await Task.Delay(consts.WaitForLoad);
             var matchRound = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
@@ -285,17 +285,28 @@ namespace API.Scrapping.Controllers
 
             #region stats per half
 
-            var statsArr = await match.PopulateData(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
+            var statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
             match.THome.Stats0 = statsArr[0];
             match.TGuest.Stats0 = statsArr[1];
 
-            statsArr = await match.PopulateData(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
+            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
             match.THome.Stats1 = statsArr[0];
             match.TGuest.Stats1 = statsArr[1];
-            statsArr = await match.PopulateData(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
+            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
             match.THome.Stats2 = statsArr[0];
             match.TGuest.Stats2 = statsArr[1];
             #endregion
+
+            #region lineups
+            await Task.Delay(consts.OpenPageDelay);
+            await page2.GoToAsync(matchUrl + "match-summary/lineups");
+            await Task.Delay(consts.WaitForLoad);
+            var lf = await match.PopulateData<Team>(matchUrl + "lineups", "div.lf__header", page2, consts);
+            match.THome.Formation = lf[0].Formation;
+            match.TGuest.Formation = lf[1].Formation;
+
+            #endregion
+
             await page2.CloseAsync();
             await page2.DisposeAsync();
             return match;

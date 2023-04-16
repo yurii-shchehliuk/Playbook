@@ -9,6 +9,7 @@ namespace Web.Domain.Entities
     {
         public int GoalsPerFirst { get; set; }
         public int GoalsPerSecond { get; set; }
+        public string Formation { get; set; }
         public Stats Stats0 { get; set; }
         public Stats Stats1 { get; set; }
         public Stats Stats2 { get; set; }

@@ -34,7 +34,7 @@ namespace Web.Domain.Entities
         /// <summary>
         /// assign data to model
         /// </summary>
-        public async Task<Stats[]> PopulateData(string url, string querySelector, IPage page2, Consts consts)
+        public async Task<T[]> PopulateData<T>(string url, string querySelector, IPage page2, Consts consts) where T : class
         {
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);
@@ -47,6 +47,10 @@ namespace Web.Domain.Entities
             foreach (var item in matchData)
             {
                 var matchContent = (await item.GetPropertyAsync("outerText")).Convert();
+                if (!matchContent.Contains(','))
+                {
+                    continue;
+                }
                 var rowSplit = matchContent.Replace("%", "").Split(',');
                 var colName = rowSplit[1].Replace(" ", "");
 
@@ -54,12 +58,12 @@ namespace Web.Domain.Entities
                 guestData.Add(colName, rowSplit[2]);
             }
             string homeDict = JsonConvert.SerializeObject(homeData);
-            var homeStats = JsonConvert.DeserializeObject<Stats>(homeDict);
+            var homeStats = JsonConvert.DeserializeObject<T>(homeDict);
 
             string guestDict = JsonConvert.SerializeObject(guestData);
-            var guestStats = JsonConvert.DeserializeObject<Stats>(guestDict);
+            var guestStats = JsonConvert.DeserializeObject<T>(guestDict);
 
-            return new Stats[] { homeStats, guestStats };
+            return new T[] { homeStats, guestStats };
         }
     }
 }

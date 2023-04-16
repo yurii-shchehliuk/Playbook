@@ -187,7 +187,7 @@
       goalsFirstHalfTotal: 1,
       goalsFirstHalfAvg: 1,
       // new functions
-      convertedToDangerous: {
+      converted_Dangerous: {
         $divide: [
           "$dangerousAttacksTotal",
           "$attacksTotal",
