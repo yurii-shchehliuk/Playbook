@@ -13,10 +13,9 @@ namespace API.Scrapping.Core
         public string BrowserPathMac { get; set; }
         public int OpenPageDelay { get; set; }
         public int WaitForLoad { get; set; }
-        public string YearToParse { get; set; }
         public bool HeadlessBrowser { get; set; }
-        public string TeamsCollection { get; set; } = "Teams";
         public string URL { get; set; }
+        public string YearToParse { get; set; }
 
     }
     public class DatabaseConfiguration
@@ -29,5 +28,7 @@ namespace API.Scrapping.Core
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
         public string LeaguesCollection { get; set; } = "Leagues";
+        public string TeamsCollection { get; set; } = "Teams";
+
     }
 }

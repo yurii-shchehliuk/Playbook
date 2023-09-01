@@ -36,7 +36,7 @@ namespace API.Scrapping
             appConfig = appConfiguration;
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
 
-            _teamService.SetCollection(appConfig.TeamsCollection);
+            _teamService.SetCollection(playbookDatabase.TeamsCollection);
             _leagueService.SetCollection(playbookDatabase.LeaguesCollection);
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -127,7 +127,7 @@ namespace API.Scrapping
                 await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
                 await Task.Delay(appConfig.WaitForLoad);
             }
-            //parse all by calss
+            //parse all by class
             var results = await page.QuerySelectorAllAsync("div.event__match");
             _logger.LogInformation(string.Format("Found matches: {0}", results.Length));
 
