@@ -29,7 +29,7 @@ namespace API.Scrapping.Services
         public async Task<List<T>> GetAsync() =>
             await _mongoCollection.Find(_ => true).ToListAsync();
 
-        public async Task<T?> GetAsync(string id) =>
+        public async Task<T> GetAsync(string id) =>
             await _mongoCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
         public async Task CreateAsync(T newItem) =>

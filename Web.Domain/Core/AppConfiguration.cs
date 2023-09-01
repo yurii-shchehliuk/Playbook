@@ -10,6 +10,7 @@ namespace API.Scrapping.Core
         }
 
         public string BrowserPath { get; set; }
+        public string BrowserPathMac { get; set; }
         public int OpenPageDelay { get; set; }
         public int WaitForLoad { get; set; }
         public string YearToParse { get; set; }

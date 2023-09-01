@@ -16,10 +16,19 @@ namespace API.Scrapping.Core
                 return _instance;
 
             _instance = new BrowserSettings();
+            var osNameAndVersion = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+            Console.WriteLine(osNameAndVersion);
+
+            var browserPath = appConfig.BrowserPath;
+            if (!osNameAndVersion.ToLowerInvariant().Contains("windows"))
+            {
+                browserPath = appConfig.BrowserPathMac;
+            }
+
             var options = new LaunchOptions()
             {
                 Headless = appConfig.HeadlessBrowser,
-                ExecutablePath = appConfig.BrowserPath,
+                ExecutablePath = browserPath,
                 Product = Product.Chrome
             };
 

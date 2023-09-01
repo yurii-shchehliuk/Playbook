@@ -4,7 +4,7 @@
     {
         Task<List<T>> GetAsync();
 
-        Task<T?> GetAsync(string id);
+        Task<T> GetAsync(string id);
 
         Task CreateAsync(T newItem);
 

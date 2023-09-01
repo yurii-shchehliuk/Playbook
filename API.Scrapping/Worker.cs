@@ -1,34 +1,33 @@
 ﻿using API.Scrapping.Core;
 using API.Scrapping.Services;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PuppeteerSharp;
 using System.Globalization;
-using System.Text;
+using System.Reflection;
 using Web.Domain.Entities;
 using Web.Domain.Extentions;
-using System.Reflection;
-using Newtonsoft.Json;
-using System;
 
-namespace API.Scrapping.Controllers
+namespace API.Scrapping
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class HomeController : ControllerBase
+    public class Worker : BackgroundService
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<Worker> _logger;
         private AppConfiguration appConfig;
         private readonly MongoService<Match> _matchService;
         private readonly MongoService<TeamBase> _teamService;
         private readonly MongoService<League> _leagueService;
         private int attempts = 0;
 
-        public HomeController(ILogger<HomeController> logger,
-                              MongoService<Match> matchService,
-                              MongoService<TeamBase> teamService,
-                              MongoService<League> leagueService,
-                              AppConfiguration appConfiguration,
-                              DatabaseConfiguration playbookDatabase)
+        public Worker(
+            ILogger<Worker> logger,
+            MongoService<Match> matchService,
+            MongoService<TeamBase> teamService,
+            MongoService<League> leagueService,
+            AppConfiguration appConfiguration,
+            DatabaseConfiguration playbookDatabase
+            )
         {
             _logger = logger;
             _matchService = matchService;
@@ -40,10 +39,7 @@ namespace API.Scrapping.Controllers
             _teamService.SetCollection(appConfig.TeamsCollection);
             _leagueService.SetCollection(playbookDatabase.LeaguesCollection);
         }
-
-
-        [HttpGet("ParseMatches")]
-        public async Task<IActionResult> ParseMatches()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             using var settings = await BrowserSettings.Init(appConfig);
 
@@ -57,7 +53,7 @@ namespace API.Scrapping.Controllers
 
                 for (int matchIndex = 0; matchIndex < matchesPerLeague.Length; matchIndex++)
                 {
-                    IElementHandle? currentMatch = matchesPerLeague[matchIndex];
+                    IElementHandle currentMatch = matchesPerLeague[matchIndex];
                     var matchId = (await currentMatch.GetPropertyAsync("id")).RemoteObject.Value.ToString().Replace("g_1_", "");
 
                     try
@@ -106,7 +102,6 @@ namespace API.Scrapping.Controllers
 
             _logger.LogInformation(string.Format("\n[{0}] Parsing finished", DateTime.Now));
             settings.Dispose();
-            return Ok();
         }
 
 
@@ -158,7 +153,7 @@ namespace API.Scrapping.Controllers
 
             for (int i = 0; i < leguesList.Count; i++)
             {
-                League? legue = leguesList[i];
+                League legue = leguesList[i];
                 Console.WriteLine(string.Format("[{0}] {1}", i, legue.Name));
             }
 
