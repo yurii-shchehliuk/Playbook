@@ -1,26 +1,26 @@
 using API.Scrapping.Core;
 using API.Scrapping.Services;
 using Microsoft.EntityFrameworkCore;
-using Web.Persistance;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
 // Add services to the container.
-builder.Services.AddControllers().AddJsonOptions(
-        options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// register mongodb
-builder.Services.Configure<MongoSettings>(
-    builder.Configuration.GetSection("PlaybookDatabase"));
-// register service
+// register services
+builder.Services.AddSingleton<AppConfiguration>();
+builder.Services.AddSingleton<DatabaseConfiguration>();
 builder.Services.AddSingleton(typeof(MongoService<>));
 
+//builder.Services.AddOptions<AppConfiguration>().BindConfiguration(nameof(AppConfiguration));
 //builder.Services.AddScoped<IMatchService, MatchService>();
 
-Consts._conf = builder.Configuration;
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

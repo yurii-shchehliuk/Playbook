@@ -1,5 +1,4 @@
-﻿
-namespace API.Scrapping.Services
+﻿namespace Web.Domain.IServices
 {
     public interface IMongoService<T>
     {

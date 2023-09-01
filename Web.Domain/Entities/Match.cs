@@ -34,7 +34,7 @@ namespace Web.Domain.Entities
         /// <summary>
         /// assign data to model
         /// </summary>
-        public async Task<T[]> PopulateData<T>(string url, string querySelector, IPage page2, Consts consts) where T : class
+        public async Task<T[]> PopulateData<T>(string url, string querySelector, IPage page2, AppConfiguration consts) where T : class
         {
             await Task.Delay(consts.OpenPageDelay);
             await page2.GoToAsync(url);

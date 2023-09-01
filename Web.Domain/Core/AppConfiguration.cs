@@ -1,0 +1,32 @@
+﻿using Microsoft.Extensions.Configuration;
+
+namespace API.Scrapping.Core
+{
+    public class AppConfiguration
+    {
+        public AppConfiguration(IConfiguration configuration)
+        {
+            configuration.Bind(this);
+        }
+
+        public string BrowserPath { get; set; }
+        public int OpenPageDelay { get; set; }
+        public int WaitForLoad { get; set; }
+        public string YearToParse { get; set; }
+        public bool HeadlessBrowser { get; set; }
+        public string TeamsCollection { get; set; } = "Teams";
+        public string URL { get; set; }
+
+    }
+    public class DatabaseConfiguration
+    {
+        public DatabaseConfiguration(IConfiguration configuration)
+        {
+            configuration.Bind("PlaybookDatabase", this);
+
+        }
+        public string ConnectionString { get; set; }
+        public string DatabaseName { get; set; }
+        public string LeaguesCollection { get; set; } = "Leagues";
+    }
+}

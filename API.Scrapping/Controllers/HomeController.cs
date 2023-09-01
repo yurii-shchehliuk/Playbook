@@ -17,7 +17,7 @@ namespace API.Scrapping.Controllers
     public class HomeController : ControllerBase
     {
         private readonly ILogger<HomeController> _logger;
-        private Consts consts;
+        private AppConfiguration appConfig;
         private readonly MongoService<Match> _matchService;
         private readonly MongoService<TeamBase> _teamService;
         private readonly MongoService<League> _leagueService;
@@ -26,24 +26,26 @@ namespace API.Scrapping.Controllers
         public HomeController(ILogger<HomeController> logger,
                               MongoService<Match> matchService,
                               MongoService<TeamBase> teamService,
-                              MongoService<League> leagueService)
+                              MongoService<League> leagueService,
+                              AppConfiguration appConfiguration,
+                              DatabaseConfiguration playbookDatabase)
         {
             _logger = logger;
             _matchService = matchService;
             _teamService = teamService;
             _leagueService = leagueService;
-            consts = new Consts();
+            appConfig = appConfiguration;
             _logger.LogInformation(string.Format("[{0}] Siemanko", DateTime.Now));
 
-            _teamService.SetCollection(consts.TeamsCollection);
-            _leagueService.SetCollection(consts.LeaguesCollection);
+            _teamService.SetCollection(appConfig.TeamsCollection);
+            _leagueService.SetCollection(playbookDatabase.LeaguesCollection);
         }
 
 
         [HttpGet("ParseMatches")]
         public async Task<IActionResult> ParseMatches()
         {
-            using var settings = await BrowserSettings.Init(consts);
+            using var settings = await BrowserSettings.Init(appConfig);
 
             var matchesResults = new List<Match>();
             var leaguesToParse = await ShowLeagues();
@@ -87,7 +89,7 @@ namespace API.Scrapping.Controllers
                     {
                         _logger.LogError(string.Format("Error parsing match with the id: {0} \n {1}, \n {2}", matchId, ex.Message, ex.InnerException));
                         attempts++;
-                        await Task.Delay(consts.WaitForLoad * 3);
+                        await Task.Delay(appConfig.WaitForLoad * 3);
                     }
                     finally
                     {
@@ -113,22 +115,22 @@ namespace API.Scrapping.Controllers
         /// </summary>
         /// <returns></returns>
         /// <todo>check xPath to get all the child of the parent table</todo>
-        private async Task<IElementHandle[]> LoadMatches(string collName)
+        private async Task<IElementHandle[]> LoadMatches(string leagueCollection)
         {
-            Console.WriteLine(string.Format("URL: {0}", consts.URL));
-            _logger.LogInformation(string.Format("Collection name: {0}", collName));
+            Console.WriteLine(string.Format("URL: {0}", appConfig.URL));
+            _logger.LogInformation(string.Format("Collection name: {0}", leagueCollection));
             //_logger.LogInformation(string.Format("Teams collection name: {0}", consts.TeamsCollection));
 
-            _matchService.SetCollection(collName);
+            _matchService.SetCollection(leagueCollection);
 
             var page = BrowserSettings.page;
-            await page.GoToAsync(consts.URL);
+            await page.GoToAsync(appConfig.URL);
 
             //load all
             while (await page.QuerySelectorAsync("a.event__more") != null)
             {
                 await page.EvaluateExpressionAsync("document.querySelector('a.event__more')?.click()");
-                await Task.Delay(consts.WaitForLoad);
+                await Task.Delay(appConfig.WaitForLoad);
             }
             //parse all by calss
             var results = await page.QuerySelectorAllAsync("div.event__match");
@@ -144,7 +146,7 @@ namespace API.Scrapping.Controllers
             if (leguesList.Count < 1)
             {
                 var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var leaguesJson = System.IO.File.ReadAllText(path + "/Data/leagues2.json");
+                var leaguesJson = System.IO.File.ReadAllText(path + "/Data/leagues.json");
 
                 var leaguesArr = JsonConvert.DeserializeObject<List<League>>(leaguesJson);
                 foreach (var item in leaguesArr)
@@ -187,9 +189,12 @@ namespace API.Scrapping.Controllers
         {
             var leguesList = await _leagueService.GetAsync();
 
-            var URL = leguesList[urlNumber].FlashscoreLink;
-            Console.WriteLine("Provide season year (press enter to parse the latest): ");
-            var year = consts.YearToParse;
+            var league = leguesList[urlNumber];
+            var URL = league.FlashscoreLink;
+
+            Console.WriteLine("Provide season year xxxx-xxxx(press enter to parse the latest): ");
+            var year = appConfig.YearToParse;
+            year = Console.ReadLine();
             if (URL.Contains("results"))
             {
                 URL = URL.Replace("/results", "");
@@ -211,18 +216,18 @@ namespace API.Scrapping.Controllers
                 {
                     URL += "/results";
                 }
-                consts.URL = URL;
+                appConfig.URL = URL;
             }
-            if (string.IsNullOrEmpty(year) && leguesList[urlNumber].Country.Name != "MLS")
+            if (string.IsNullOrEmpty(year) && league.Country.Name != "MLS")
             {
                 year = (DateTime.Now.Year - 1).ToString() + "-" + DateTime.Now.Year.ToString();
             }
-            else if (leguesList[urlNumber].Country.Name == "MLS")
+            else if (league.Country.Name == "MLS")
             {
                 year = DateTime.Now.Year.ToString();
 
             }
-            return leguesList[urlNumber].Country.Code + consts.GetFileName + "_" + year;
+            return league.Country.Code + league.GetFileName + "_" + year;
 
         }
 
@@ -234,7 +239,7 @@ namespace API.Scrapping.Controllers
             using var page2 = await BrowserSettings.browser.NewPageAsync();
 
             var matchUrl = $@"https://www.flashscore.com/match/{match.Id}/#/match-summary/";
-            await Task.Delay(consts.OpenPageDelay);
+            await Task.Delay(appConfig.OpenPageDelay);
             await page2.GoToAsync(matchUrl + "match-summary/");
 
             #region team
@@ -262,7 +267,7 @@ namespace API.Scrapping.Controllers
                 await _teamService.CreateAsync(match.TGuest.GetInstance());
                 Console.WriteLine(string.Format("Added team: {0}", match.TGuest.Name));
             }
-            await Task.Delay(consts.OpenPageDelay);
+            await Task.Delay(appConfig.OpenPageDelay);
             var goalsPerFirst = (await match.PopulateData("div.smv__incidentsHeader", page2)).FirstOrDefault().Split(',').LastOrDefault().Split('-');
             match.THome.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[0]);
             match.TGuest.GoalsPerFirst = Convert.ToInt32(goalsPerFirst[1]);
@@ -272,7 +277,7 @@ namespace API.Scrapping.Controllers
             #endregion
 
             #region summary
-            await Task.Delay(consts.WaitForLoad);
+            await Task.Delay(appConfig.WaitForLoad);
             var matchRound = (await page2.EvaluateExpressionAsync("document.querySelector('span.tournamentHeader__country').lastChild.innerHTML")).ToString();
             match.RoundNr = Convert.ToInt32(matchRound.Substring(matchRound.IndexOf("Round") + 6));
 
@@ -285,23 +290,23 @@ namespace API.Scrapping.Controllers
 
             #region stats per half
 
-            var statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/0", "div.stat__row", page2, consts);
+            var statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/0", "div.stat__row", page2, appConfig);
             match.THome.Stats0 = statsArr[0];
             match.TGuest.Stats0 = statsArr[1];
 
-            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/1", "div.stat__row", page2, consts);
+            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/1", "div.stat__row", page2, appConfig);
             match.THome.Stats1 = statsArr[0];
             match.TGuest.Stats1 = statsArr[1];
-            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/2", "div.stat__row", page2, consts);
+            statsArr = await match.PopulateData<Stats>(matchUrl + "match-statistics/2", "div.stat__row", page2, appConfig);
             match.THome.Stats2 = statsArr[0];
             match.TGuest.Stats2 = statsArr[1];
             #endregion
 
             #region lineups
-            await Task.Delay(consts.OpenPageDelay);
+            await Task.Delay(appConfig.OpenPageDelay);
             await page2.GoToAsync(matchUrl + "match-summary/lineups");
-            await Task.Delay(consts.WaitForLoad);
-            var lf = await match.PopulateData<Team>(matchUrl + "lineups", "div.lf__header", page2, consts);
+            await Task.Delay(appConfig.WaitForLoad);
+            var lf = await match.PopulateData<Team>(matchUrl + "lineups", "div.lf__header", page2, appConfig);
             match.THome.Formation = lf[0].Formation;
             match.TGuest.Formation = lf[1].Formation;
 

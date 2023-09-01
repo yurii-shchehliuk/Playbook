@@ -23,6 +23,7 @@ namespace Web.Domain.Entities
         public string TdslLink { get; set; }
         [BsonElement("whoScoredLink")]
         public string WhoScoredLink { get; set; }
+
         public class CountryObj
         {
             [BsonElement("name")]
@@ -30,6 +31,21 @@ namespace Web.Domain.Entities
             [BsonElement("code")]
             public string Code { get; set; }
         }
+
+        public string GetFileName
+        {
+            get
+            {
+                var url = FlashscoreLink.Remove(0, 36).Replace('/', '_').Replace('-', '_').Replace("results", "");
+                if (url.EndsWith('_'))
+                {
+                    url = url.TrimEnd('_');
+                }
+                //remove country name
+                url = url.Substring(url.IndexOf("_"));
+                return url;
+            }
+        }
     }
-    
+
 }

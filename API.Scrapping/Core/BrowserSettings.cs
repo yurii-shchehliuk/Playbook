@@ -1,4 +1,5 @@
-﻿using PuppeteerSharp;
+﻿using Microsoft.Extensions.Options;
+using PuppeteerSharp;
 
 namespace API.Scrapping.Core
 {
@@ -9,7 +10,7 @@ namespace API.Scrapping.Core
 
         private static BrowserSettings _instance;
 
-        public static async Task<BrowserSettings> Init(Consts consts)
+        public static async Task<BrowserSettings> Init(AppConfiguration appConfig)
         {
             if (_instance != null)
                 return _instance;
@@ -17,8 +18,8 @@ namespace API.Scrapping.Core
             _instance = new BrowserSettings();
             var options = new LaunchOptions()
             {
-                Headless = consts.HeadlessBrowser,
-                ExecutablePath = consts.BrowserPath,
+                Headless = appConfig.HeadlessBrowser,
+                ExecutablePath = appConfig.BrowserPath,
                 Product = Product.Chrome
             };
 

@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+﻿using API.Scrapping.Core;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Web.Domain.Entities;
-using Web.Persistance;
+using Web.Domain.IServices;
 
 namespace API.Scrapping.Services
 {
@@ -11,13 +12,13 @@ namespace API.Scrapping.Services
         private IMongoCollection<T> _mongoCollection;
 
         public MongoService(
-            IOptions<MongoSettings> itemStoreDatabaseSettings)
+            DatabaseConfiguration itemStoreDatabaseSettings)
         {
             var client = new MongoClient(
-                itemStoreDatabaseSettings.Value.ConnectionString);
+                itemStoreDatabaseSettings.ConnectionString);
 
             _db = client.GetDatabase(
-                itemStoreDatabaseSettings.Value.DatabaseName);
+                itemStoreDatabaseSettings.DatabaseName);
         }
 
         public void SetCollection(string collection)
