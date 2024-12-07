@@ -1,0 +1,10 @@
+extends ../../layouts/default
+
+block page-header
+  h2=title
+
+block content
+  each match in matches 
+    div
+      a(href=`/matches/${match._id}`)= match.Title
+    

@@ -1,0 +1,10 @@
+extends ../../layouts/default
+
+block page-header
+  h2=title
+
+block content
+  each league in leagues 
+    div
+      a(href=`/leagues/${league.country.code}/${league.name}`)= league.name
+    

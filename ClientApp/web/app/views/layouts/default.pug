@@ -1,0 +1,22 @@
+doctype html
+html(lang="en" data-bs-theme="dark")
+  include ../includes/head.pug
+  body
+    include ../includes/header.pug
+    .container-fluid
+      .row.flex-xl-nowrap
+
+        .col-md-3.col-xl-2.bd-sidebar
+          include ../includes/sidebar.pug
+
+        .col-md-9.col-xl-10.pl-md-5.bd-content
+          .page-header
+            block page-header
+          .messages
+            include ../includes/messages.pug
+          block main
+          .content
+            block content
+
+          include ../includes/footer.pug
+          include ../includes/foot.pug

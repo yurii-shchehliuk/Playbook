@@ -1,0 +1,19 @@
+extends ../../layouts/default
+
+block page-header
+  h2=title
+
+block content
+  div
+    //- Main info
+    p Round number: #{match.RoundNr}
+    
+    .row 
+        .col-4
+            h5= match.THome.Name
+        .col-4
+            h4 #{match.THome.GoalsPerFirst + match.THome.GoalsPerSecond} : #{match.TGuest.GoalsPerFirst + match.TGuest.GoalsPerSecond}
+        .col-4 
+            h5= match.TGuest.Name
+
+    //- 
