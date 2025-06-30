@@ -19,6 +19,8 @@ namespace API.Scrapping.Services
 
             _db = client.GetDatabase(
                 itemStoreDatabaseSettings.DatabaseName);
+
+            client.ListDatabaseNames(); 
         }
 
         public void SetCollection(string collection)
